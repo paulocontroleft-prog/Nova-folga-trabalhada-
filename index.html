@@ -1,0 +1,3201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova Folga Trabalhada (FT)</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=Nunito:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --card:     #1c2230;
+    --border:   #2a3347;
+    --accent1:  #f7b731;
+    --accent2:  #26de81;
+    --accent3:  #45aaf2;
+    --accent4:  #fd9644;
+    --danger:   #fc5c65;
+    --text:     #e8edf5;
+    --muted:    #8b97b0;
+    --input-bg: #10151e;
+    --radius:   14px;
+    --shadow:   0 8px 32px rgba(0,0,0,.45);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(247,183,49,.08) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 90% 80%,  rgba(38,222,129,.06) 0%, transparent 60%);
+  }
+
+  header {
+    background: linear-gradient(135deg, #1a2133 0%, #0f1624 100%);
+    border-bottom: 2px solid var(--accent1);
+    padding: 22px 20px 18px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 4px 24px rgba(0,0,0,.5);
+  }
+  header h1 {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: .5px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  header h1 .icon { font-size: 1.5rem; }
+  .badge-auto {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(38,222,129,.15);
+    border: 1px solid rgba(38,222,129,.4);
+    color: var(--accent2);
+    font-size: .72rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-top: 8px;
+    letter-spacing: .3px;
+  }
+
+  /* ── Indicador de conexão ── */
+  #sync-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: 4px 13px;
+    border-radius: 20px;
+    margin-top: 6px;
+    margin-left: 8px;
+    letter-spacing: .3px;
+    transition: background .4s, color .4s, border-color .4s;
+    cursor: default;
+  }
+  #sync-status.online {
+    background: rgba(38,222,129,.15);
+    border: 1px solid rgba(38,222,129,.45);
+    color: var(--accent2);
+  }
+  #sync-status.offline {
+    background: rgba(252,92,101,.15);
+    border: 1px solid rgba(252,92,101,.45);
+    color: var(--danger);
+  }
+  #sync-status.syncing {
+    background: rgba(69,170,242,.15);
+    border: 1px solid rgba(69,170,242,.45);
+    color: var(--accent3);
+  }
+  #sync-status .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  #sync-status.syncing .dot {
+    animation: pulse-dot 1s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: .4; transform: scale(.6); }
+  }
+
+  /* Badge de fila pendente */
+  #pending-badge {
+    display: none;
+    align-items: center;
+    gap: 5px;
+    background: rgba(253,150,68,.15);
+    border: 1px solid rgba(253,150,68,.45);
+    color: var(--accent4);
+    font-size: .68rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-top: 6px;
+    margin-left: 6px;
+    letter-spacing: .3px;
+  }
+  #pending-badge.visible { display: inline-flex; }
+
+  .tabs-wrapper {
+    max-width: 480px;
+    margin: 20px auto 0;
+    padding: 0 16px;
+  }
+  .tab-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .tab-btn {
+    flex: 1;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--muted);
+    font-family: 'Exo 2', sans-serif;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .3px;
+    padding: 11px 4px;
+    cursor: pointer;
+    transition: all .2s;
+    text-transform: uppercase;
+  }
+  .tab-btn.active {
+    background: linear-gradient(135deg, rgba(247,183,49,.15) 0%, rgba(253,150,68,.1) 100%);
+    border-color: var(--accent1);
+    color: var(--accent1);
+    box-shadow: 0 0 0 2px rgba(247,183,49,.12);
+  }
+  .tab-btn:not(.active):hover { border-color: var(--muted); color: var(--text); }
+
+  .tab-panel { display: block; }
+  .tab-panel.hidden { display: none; }
+
+  .notice {
+    background: rgba(247,183,49,.1);
+    border-left: 4px solid var(--accent1);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-size: .85rem;
+    line-height: 1.6;
+    color: #d4c27a;
+    margin-bottom: 16px;
+  }
+  .notice strong { color: var(--accent1); }
+  .notice .hl-green  { color: var(--accent2); font-weight: 700; }
+  .notice .hl-orange { color: var(--accent4); font-weight: 700; }
+
+  .form-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 18px;
+    box-shadow: var(--shadow);
+  }
+
+  .field { margin-bottom: 22px; }
+  .field.hidden { display: none; }
+
+  .field-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .field-label .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .col-amber  { color: var(--accent1); }
+  .col-green  { color: var(--accent2); }
+  .col-blue   { color: var(--accent3); }
+  .col-orange { color: var(--accent4); }
+  .col-danger { color: var(--danger);  }
+
+  .bg-amber  { background: var(--accent1); }
+  .bg-green  { background: var(--accent2); }
+  .bg-blue   { background: var(--accent3); }
+  .bg-orange { background: var(--accent4); }
+  .bg-danger { background: var(--danger);  }
+
+  select, input[type="number"], input[type="datetime-local"], input[type="text"] {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: .95rem;
+    padding: 13px 16px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b97b0' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+  select:focus, input:focus { border-color: var(--accent1); box-shadow: 0 0 0 3px rgba(247,183,49,.18); }
+  select option { background: #1c2230; }
+
+  .field-hint {
+    margin-top: 5px;
+    font-size: .78rem;
+    color: var(--muted);
+    min-height: 1.1em;
+    transition: opacity .2s;
+    opacity: 0;
+  }
+  .field-hint.visible { opacity: 1; }
+
+  .input-prefix { position: relative; }
+  .input-prefix span {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent2);
+    font-weight: 700;
+    font-size: .95rem;
+    pointer-events: none;
+  }
+  .input-prefix input { padding-left: 36px; }
+
+  .section-sep {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0 18px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .section-sep::before, .section-sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .btn-row { display: flex; gap: 12px; margin-top: 10px; }
+  .btn {
+    flex: 1;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+    letter-spacing: .4px;
+    padding: 15px 10px;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .2s, opacity .2s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-clear {
+    background: rgba(139,151,176,.12);
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+  }
+  .btn-clear:hover { border-color: var(--muted); color: var(--text); }
+  .btn-submit {
+    background: linear-gradient(135deg, var(--accent1) 0%, var(--accent4) 100%);
+    color: #0d1117;
+    box-shadow: 0 4px 20px rgba(247,183,49,.35);
+  }
+  .btn-submit:hover { box-shadow: 0 6px 28px rgba(247,183,49,.5); }
+  .btn-submit:disabled { opacity: .6; cursor: default; }
+
+  .spin { display: inline-block; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: .9rem;
+    opacity: 0;
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s;
+    z-index: 999;
+    white-space: nowrap;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--accent2); color: #0d1117; }
+  .toast.error   { background: var(--danger);  color: #fff; }
+
+  /* Cadastro tab */
+  .cadastro-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 18px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .cadastro-section h2 {
+    font-family: 'Exo 2', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .add-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .add-row input { flex: 1; }
+  .btn-add {
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent2) 0%, var(--accent3) 100%);
+    color: #0d1117;
+    font-family: 'Exo 2', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    padding: 0 18px;
+    cursor: pointer;
+    transition: opacity .2s, transform .15s;
+    white-space: nowrap;
+  }
+  .btn-add:active { transform: scale(.97); }
+  .btn-add:hover { opacity: .88; }
+
+  .relatorio-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 18px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .relatorio-section h2 {
+    font-family: 'Exo 2', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent3);
+  }
+  .relatorio-desc { font-size: .8rem; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+
+  .filtro-label {
+    font-family: 'Exo 2', sans-serif;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .filtro-row { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .btn-filtro {
+    flex: 1;
+    min-width: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: var(--input-bg);
+    color: var(--muted);
+    font-family: 'Exo 2', sans-serif;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .4px;
+    padding: 8px 6px;
+    cursor: pointer;
+    transition: all .2s;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .btn-filtro:hover { border-color: var(--accent3); color: var(--accent3); }
+  .btn-filtro.active { border-color: var(--accent3); background: rgba(69,170,242,.15); color: var(--accent3); box-shadow: 0 0 0 2px rgba(69,170,242,.15); }
+  .btn-filtro[data-filtro="colaboradores"].active { border-color: var(--accent2); background: rgba(38,222,129,.12); color: var(--accent2); box-shadow: 0 0 0 2px rgba(38,222,129,.12); }
+  .btn-filtro[data-filtro="postos"].active { border-color: var(--accent1); background: rgba(247,183,49,.12); color: var(--accent1); box-shadow: 0 0 0 2px rgba(247,183,49,.12); }
+
+  .filtro-divider { border: none; border-top: 1px solid var(--border); margin: 0 0 14px; }
+
+  .relatorio-row { display: flex; gap: 10px; }
+  .btn-relatorio {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 10px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .2s, opacity .2s;
+  }
+  .btn-relatorio:active { transform: scale(.97); }
+  .btn-relatorio .rel-icon { font-size: 1.5rem; line-height: 1; }
+  .btn-relatorio .rel-label { font-size: .75rem; }
+  .btn-relatorio .rel-sub { font-size: .62rem; font-weight: 400; opacity: .8; font-family: 'Nunito', sans-serif; text-transform: none; letter-spacing: 0; text-align: center; line-height: 1.3; }
+
+  .btn-pdf { background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%); color: #fff; box-shadow: 0 4px 18px rgba(229,57,53,.35); border: 1px solid rgba(229,57,53,.4); }
+  .btn-pdf:hover { box-shadow: 0 6px 24px rgba(229,57,53,.55); opacity: .93; }
+  .btn-excel { background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%); color: #fff; box-shadow: 0 4px 18px rgba(46,125,50,.35); border: 1px solid rgba(46,125,50,.4); }
+  .btn-excel:hover { box-shadow: 0 6px 24px rgba(46,125,50,.55); opacity: .93; }
+
+  .list-items { display: flex; flex-direction: column; gap: 8px; }
+  .list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: .9rem;
+    gap: 10px;
+  }
+  .list-item span { flex: 1; word-break: break-word; }
+  .btn-remove {
+    border: none;
+    background: rgba(252,92,101,.15);
+    color: var(--danger);
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-size: .85rem;
+    cursor: pointer;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  .btn-remove:hover { background: rgba(252,92,101,.3); }
+
+  .empty-state { text-align: center; color: var(--muted); font-size: .88rem; padding: 16px 0; }
+
+  /* ── Dashboard ── */
+  .dash-filter-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .dash-filter-row { display: flex; flex-direction: column; gap: 14px; }
+  .dash-filter-group { display: flex; flex-direction: column; gap: 6px; }
+  .dash-filter-label {
+    font-family: 'Exo 2', sans-serif;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .dash-pill-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dash-pill {
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: var(--input-bg);
+    color: var(--muted);
+    font-family: 'Exo 2', sans-serif;
+    font-size: .75rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .dash-pill:hover { border-color: var(--accent3); color: var(--accent3); }
+  .dash-pill.active {
+    border-color: var(--accent1);
+    background: rgba(247,183,49,.14);
+    color: var(--accent1);
+    box-shadow: 0 0 0 2px rgba(247,183,49,.12);
+  }
+
+  .kpi-row { display: flex; gap: 10px; margin-bottom: 14px; }
+  .kpi-card {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .kpi-value {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+  .kpi-label { font-size: .68rem; color: var(--muted); font-weight: 600; letter-spacing: .5px; }
+  .kpi-green .kpi-value { color: var(--accent2); }
+  .kpi-amber .kpi-value { color: var(--accent1); }
+  .kpi-blue  .kpi-value { color: var(--accent3); }
+
+  .dash-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 16px 14px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .dash-card-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+  .dash-card-title {
+    font-family: 'Exo 2', sans-serif;
+    font-size: .88rem;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .dash-card-sub { font-size: .72rem; color: var(--muted); }
+
+  .chart-wrap { position: relative; width: 100%; height: 220px; }
+  .chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    margin-top: 10px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: .72rem;
+    color: var(--muted);
+  }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .ranking-table { display: flex; flex-direction: column; gap: 6px; }
+  .rank-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .rank-pos {
+    font-family: 'Exo 2', sans-serif;
+    font-size: .8rem;
+    font-weight: 800;
+    color: var(--muted);
+    min-width: 22px;
+    text-align: center;
+  }
+  .rank-pos.gold   { color: #f7b731; }
+  .rank-pos.silver { color: #aab2c0; }
+  .rank-pos.bronze { color: #cd7f32; }
+  .rank-name { flex: 1; font-size: .88rem; font-weight: 600; color: var(--text); word-break: break-word; }
+  .rank-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .rank-badge {
+    font-size: .7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+  .rank-badge-qtd   { background: rgba(38,222,129,.18);  color: var(--accent2); }
+  .rank-badge-valor { background: rgba(247,183,49,.18); color: var(--accent1); }
+  .rank-bar-wrap { width: 100%; height: 4px; background: var(--border); border-radius: 2px; margin-top: 4px; }
+  .rank-bar { height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--accent2), var(--accent3)); transition: width .4s; }
+
+  .dash-select {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: .9rem;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b97b0' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+    cursor: pointer;
+  }
+  .dash-select:focus { border-color: var(--accent1); box-shadow: 0 0 0 3px rgba(247,183,49,.18); }
+  .dash-select option { background: #1c2230; }
+
+  .dash-empty {
+    text-align: center;
+    color: var(--muted);
+    font-size: .88rem;
+    padding: 30px 0;
+  }
+
+  /* ── Modal de advertência de duplicata ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.72);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: var(--card);
+    border: 2px solid var(--danger);
+    border-radius: 18px;
+    padding: 28px 22px 22px;
+    max-width: 380px;
+    width: 100%;
+    box-shadow: 0 12px 48px rgba(252,92,101,.3);
+    transform: scale(.92);
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+  }
+  .modal-overlay.show .modal-box { transform: scale(1); }
+  .modal-icon {
+    font-size: 2.6rem;
+    text-align: center;
+    margin-bottom: 12px;
+    line-height: 1;
+  }
+  .modal-title {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--danger);
+    text-align: center;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .modal-body {
+    background: rgba(252,92,101,.08);
+    border: 1px solid rgba(252,92,101,.25);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: .87rem;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 18px;
+  }
+  .modal-body strong { color: var(--danger); }
+  .modal-body .modal-detail {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: .82rem;
+    color: var(--muted);
+  }
+  .modal-detail-icon { flex-shrink: 0; font-size: 1rem; }
+  .modal-btn-row { display: flex; gap: 10px; }
+  .btn-modal-ok {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    background: var(--danger);
+    color: #fff;
+    font-family: 'Exo 2', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    padding: 13px;
+    cursor: pointer;
+    transition: opacity .2s, transform .15s;
+  }
+  .btn-modal-ok:hover { opacity: .88; }
+  .btn-modal-ok:active { transform: scale(.97); }
+
+  /* Botões de exportação do dashboard */
+  .dash-export-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .dash-export-label {
+    font-family: 'Exo 2', sans-serif;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dash-export-row { display: flex; gap: 10px; }
+  .btn-dash-export {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 10px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .2s, opacity .2s;
+  }
+  .btn-dash-export:active { transform: scale(.97); }
+  .btn-dash-export .exp-icon { font-size: 1.35rem; line-height: 1; }
+  .btn-dash-export .exp-sub  { font-size: .6rem; font-weight: 400; opacity: .8; font-family: 'Nunito', sans-serif; text-transform: none; letter-spacing: 0; }
+  .btn-dash-pdf   { background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%); color: #fff; box-shadow: 0 4px 18px rgba(229,57,53,.35); border: 1px solid rgba(229,57,53,.4); }
+  .btn-dash-pdf:hover   { box-shadow: 0 6px 24px rgba(229,57,53,.55); opacity: .93; }
+  .btn-dash-excel { background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%); color: #fff; box-shadow: 0 4px 18px rgba(46,125,50,.35); border: 1px solid rgba(46,125,50,.4); }
+  .btn-dash-excel:hover { box-shadow: 0 6px 24px rgba(46,125,50,.55); opacity: .93; }
+
+  /* ── Aba Histórico ── */
+  .hist-search-wrap {
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .hist-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    pointer-events: none;
+  }
+  .hist-search-input {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: .92rem;
+    padding: 12px 14px 12px 40px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .hist-search-input:focus { border-color: var(--accent1); box-shadow: 0 0 0 3px rgba(247,183,49,.18); }
+  .hist-search-input::placeholder { color: var(--muted); }
+
+  .hist-count {
+    font-family: 'Exo 2', sans-serif;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding: 0 2px;
+  }
+  .hist-count span { color: var(--accent1); }
+
+  .hist-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .hist-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
+    transition: border-color .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .hist-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 3px 0 0 3px;
+  }
+  .hist-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .hist-colab {
+    font-family: 'Exo 2', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hist-valor {
+    font-family: 'Exo 2', sans-serif;
+    font-size: .95rem;
+    font-weight: 800;
+    color: var(--accent2);
+    white-space: nowrap;
+  }
+  .hist-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .hist-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: .72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .hist-tag-posto   { background: rgba(247,183,49,.14);  color: var(--accent1); }
+  .hist-tag-motivo  { background: rgba(253,150,68,.14);  color: var(--accent4); }
+  .hist-tag-horario { background: rgba(69,170,242,.14);  color: var(--accent3); }
+  .hist-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .hist-data {
+    font-size: .76rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .hist-quem-faltou {
+    font-size: .74rem;
+    color: var(--danger);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .hist-empty {
+    text-align: center;
+    color: var(--muted);
+    font-size: .9rem;
+    padding: 40px 0;
+  }
+  .hist-empty .hist-empty-icon { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+
+  /* ── Botões de ação no card de histórico ── */
+  .hist-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,.07);
+  }
+  .btn-hist-edit, .btn-hist-del {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Exo 2', sans-serif;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .4px;
+    padding: 8px 6px;
+    cursor: pointer;
+    transition: opacity .2s, transform .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  .btn-hist-edit:active, .btn-hist-del:active { transform: scale(.97); }
+  .btn-hist-edit {
+    background: rgba(69,170,242,.15);
+    border: 1px solid rgba(69,170,242,.35);
+    color: var(--accent3);
+  }
+  .btn-hist-edit:hover { background: rgba(69,170,242,.28); }
+  .btn-hist-del {
+    background: rgba(252,92,101,.12);
+    border: 1px solid rgba(252,92,101,.3);
+    color: var(--danger);
+  }
+  .btn-hist-del:hover { background: rgba(252,92,101,.25); }
+
+  /* ── Modal de edição de FT ── */
+  .modal-edit-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.78);
+    z-index: 600;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+  }
+  .modal-edit-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-edit-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 32px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 -8px 48px rgba(0,0,0,.6);
+    transform: translateY(60px);
+    transition: transform .3s cubic-bezier(.34,1.2,.64,1);
+  }
+  .modal-edit-overlay.show .modal-edit-box { transform: translateY(0); }
+  .modal-edit-handle {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 18px;
+  }
+  .modal-edit-title {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--accent3);
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .modal-edit-btn-row { display: flex; gap: 10px; margin-top: 18px; }
+  .btn-edit-cancel {
+    flex: 1;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Exo 2', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    padding: 14px;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+  .btn-edit-cancel:hover { border-color: var(--muted); color: var(--text); }
+  .btn-edit-save {
+    flex: 2;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent3) 0%, #1a6fc4 100%);
+    color: #fff;
+    font-family: 'Exo 2', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    padding: 14px;
+    cursor: pointer;
+    transition: opacity .2s, transform .15s;
+    box-shadow: 0 4px 18px rgba(69,170,242,.3);
+  }
+  .btn-edit-save:hover { opacity: .9; }
+  .btn-edit-save:active { transform: scale(.97); }
+
+  @media (min-width: 500px) {
+    header h1 { font-size: 1.6rem; }
+    .tabs-wrapper { padding: 0; }
+    .dash-filter-row { flex-direction: row; flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="icon">&#x1F4BC;</span> Nova Folga Trabalhada <span style="color:var(--accent1)">FT</span></h1>
+  <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0;">
+    <div class="badge-auto">&#x1F4BE; Offline-first</div>
+    <span id="sync-status" class="online" title="Status da conexão">
+      <span class="dot"></span><span id="sync-label">Online</span>
+    </span>
+    <span id="pending-badge" title="Operações aguardando sincronização">
+      ⏳ <span id="pending-count">0</span> pendente(s)
+    </span>
+  </div>
+</header>
+
+<div class="tabs-wrapper">
+
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="tab-ft">&#x1F4CB; Nova FT</button>
+    <button class="tab-btn" data-tab="tab-cadastros">&#x1F5C2;&#xFE0F; Cadastros</button>
+    <button class="tab-btn" data-tab="tab-dashboard">&#x1F4CA; Dashboard</button>
+    <button class="tab-btn" data-tab="tab-historico">&#x1F4DC; Histórico</button>
+  </div>
+
+  <!-- ABA: NOVA FT -->
+  <div class="tab-panel" id="tab-ft">
+
+    <div class="notice">
+      <strong>&#x2139;&#xFE0F; Observação:</strong> O campo <em>"Quem está indo"</em> é sempre visível — informe o porteiro/colaborador que vai trabalhar.
+      O campo <em>"Quem faltou"</em> aparece apenas para motivos com ausente: <span class="hl-green">Atestado</span>, <span class="hl-green">Suspensão</span>, <span class="hl-green">Folga do Vigia</span>, <span class="hl-green">Cobertura de Férias</span>, <span class="hl-orange">Afastamento</span>, <span class="hl-orange">Remanejamento Interno</span> e <span class="hl-orange">Falta de Efetivo</span>.
+    </div>
+
+    <div class="form-card">
+      <form id="ftForm" novalidate>
+
+        <div class="field">
+          <div class="field-label col-amber">
+            <span class="dot bg-amber"></span>&#x1F4CD; Posto
+          </div>
+          <select id="posto" required>
+            <option value="">-- Selecione --</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <div class="field-label col-orange">
+            <span class="dot bg-orange"></span>&#x1F4AC; Motivo
+          </div>
+          <select id="motivo" required>
+            <option value="">-- Selecione --</option>
+            <option>Afastamento</option>
+            <option>Atestado</option>
+            <option>Cobertura de Férias</option>
+            <option>Extra</option>
+            <option>Falta de Efetivo</option>
+            <option>Folga do Vigia</option>
+            <option>Remanejamento Interno</option>
+            <option>Suspensão</option>
+            <option>Treinamento</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <div class="field-label col-blue">
+            <span class="dot bg-blue"></span>&#x1F550; Horário
+          </div>
+          <select id="horario" required>
+            <option value="">-- Selecione --</option>
+            <option>00:00 – 06:00</option>
+            <option>06:00 – 12:00</option>
+            <option>06:00 – 14:00</option>
+            <option>06:00 – 18:00</option>
+            <option>07:00 – 13:00</option>
+            <option>07:00 – 19:00</option>
+            <option>08:00 – 14:00</option>
+            <option>08:00 – 18:00</option>
+            <option>10:00 – 22:00</option>
+            <option>12:00 – 18:00</option>
+            <option>12:00 – 00:00</option>
+            <option>14:00 – 20:00</option>
+            <option>18:00 – 00:00</option>
+            <option>18:00 – 06:00</option>
+            <option>19:00 – 07:00</option>
+            <option>22:00 – 10:00</option>
+            <option>Plantão 12h Diurno</option>
+            <option>Plantão 12h Noturno</option>
+            <option>Plantão 24h</option>
+          </select>
+        </div>
+
+        <div class="section-sep">Colaboradores</div>
+
+        <!-- QUEM ESTÁ INDO — sempre visível, obrigatório -->
+        <div class="field" id="block-substituto">
+          <div class="field-label col-green">
+            <span class="dot bg-green"></span>&#x1F464; Quem está indo (Porteiro/Colaborador)
+          </div>
+          <select id="substituto" required>
+            <option value="">-- Selecione --</option>
+          </select>
+          <p class="field-hint" id="hint-substituto"></p>
+        </div>
+
+        <!-- QUEM FALTOU — aparece para motivos que envolvem ausência -->
+        <div class="field hidden" id="block-quem-faltou">
+          <div class="field-label col-danger">
+            <span class="dot bg-danger"></span>&#x1F6A8; Quem faltou
+          </div>
+          <select id="quemFaltou">
+            <option value="">-- Selecione --</option>
+          </select>
+          <p class="field-hint" id="hint-quem-faltou"></p>
+        </div>
+
+        <div class="section-sep">Valores</div>
+
+        <div class="field">
+          <div class="field-label col-green">
+            <span class="dot bg-green"></span>&#x1F4B0; Valor (R$)
+          </div>
+          <div class="input-prefix">
+            <span>R$</span>
+            <input type="number" id="valor" min="0" step="0.01" placeholder="0,00">
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label col-blue">
+            <span class="dot bg-blue"></span>&#x1F4C5; Data / Hora
+          </div>
+          <input type="datetime-local" id="dataHora" required>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-clear" id="btnLimpar">&#x21BA; Limpar</button>
+          <button type="submit" class="btn btn-submit" id="btnRegistrar">&#x1F4BE; Registrar FT</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- ABA: CADASTROS -->
+  <div class="tab-panel hidden" id="tab-cadastros">
+
+    <div class="relatorio-section">
+      <h2>&#x1F4CA; Gerar Relatórios</h2>
+      <p class="relatorio-desc">Filtre o que deseja exportar e escolha o formato.</p>
+
+      <div class="filtro-label">&#x1F50D; Filtrar por</div>
+      <div class="filtro-row">
+        <button class="btn-filtro active" data-filtro="todos">&#x1F4CB; Todos</button>
+        <button class="btn-filtro" data-filtro="colaboradores">&#x1F464; Colaboradores</button>
+        <button class="btn-filtro" data-filtro="postos">&#x1F4CD; Postos</button>
+      </div>
+
+      <hr class="filtro-divider">
+
+      <div class="relatorio-row">
+        <button class="btn-relatorio btn-pdf" id="btnRelatorioPDF">
+          <span class="rel-icon">&#x1F4C4;</span>
+          <span class="rel-label">PDF</span>
+          <span class="rel-sub" id="relatorio-sub-pdf">Postos + Colaboradores</span>
+        </button>
+        <button class="btn-relatorio btn-excel" id="btnRelatorioExcel">
+          <span class="rel-icon">&#x1F4CA;</span>
+          <span class="rel-label">Excel</span>
+          <span class="rel-sub" id="relatorio-sub-excel">Postos + Colaboradores</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="cadastro-section">
+      <h2 class="col-amber">&#x1F4CD; Postos de Trabalho</h2>
+      <div class="add-row">
+        <input type="text" id="inputPosto" placeholder="Nome do posto…" maxlength="80">
+        <button class="btn-add" id="btnAddPosto">+ Adicionar</button>
+      </div>
+      <div class="list-items" id="listaPostos">
+        <p class="empty-state">Nenhum posto cadastrado.</p>
+      </div>
+    </div>
+
+    <div class="cadastro-section">
+      <h2 class="col-green">&#x1F464; Colaboradores</h2>
+      <div class="add-row">
+        <input type="text" id="inputColaborador" placeholder="Nome do colaborador…" maxlength="80">
+        <button class="btn-add" id="btnAddColaborador">+ Adicionar</button>
+      </div>
+      <div class="list-items" id="listaColaboradores">
+        <p class="empty-state">Nenhum colaborador cadastrado.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ABA: DASHBOARD -->
+  <div class="tab-panel hidden" id="tab-dashboard">
+
+    <!-- Filtros -->
+    <div class="dash-filter-card">
+      <div class="dash-filter-row">
+        <div class="dash-filter-group">
+          <label class="dash-filter-label">&#x1F50D; Visualizar por</label>
+          <div class="dash-pill-row">
+            <button class="dash-pill active" data-view="colaborador">&#x1F464; Colaborador</button>
+            <button class="dash-pill" data-view="posto">&#x1F4CD; Posto</button>
+          </div>
+        </div>
+        <div class="dash-filter-group">
+          <label class="dash-filter-label">&#x1F4C5; Período</label>
+          <div class="dash-pill-row">
+            <button class="dash-pill active" data-period="todos">Todos</button>
+            <button class="dash-pill" data-period="mes">Este mês</button>
+            <button class="dash-pill" data-period="ano">Este ano</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-filter-group" style="margin-top:14px;">
+        <label class="dash-filter-label" id="dash-select-label">&#x1F464; Filtrar por colaborador</label>
+        <select id="dashSelectFiltro" class="dash-select">
+          <option value="">— Todos —</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="kpi-row">
+      <div class="kpi-card kpi-green">
+        <div class="kpi-value" id="kpi-total-fts">0</div>
+        <div class="kpi-label">Total de FTs</div>
+      </div>
+      <div class="kpi-card kpi-amber">
+        <div class="kpi-value" id="kpi-total-valor">R$ 0</div>
+        <div class="kpi-label">Valor Total</div>
+      </div>
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-value" id="kpi-media-valor">R$ 0</div>
+        <div class="kpi-label">Média por FT</div>
+      </div>
+    </div>
+
+    <!-- Tabela ranking -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <span class="dash-card-title">&#x1F3C6; Ranking</span>
+        <span class="dash-card-sub" id="dash-sub-rank">por FTs realizadas</span>
+      </div>
+      <div id="rankingTable" class="ranking-table"></div>
+    </div>
+
+    <!-- Exportação dashboard -->
+    <div class="dash-export-card">
+      <div class="dash-export-label">&#x1F4E4; Exportar relatório atual</div>
+      <div class="dash-export-row">
+        <button class="btn-dash-export btn-dash-pdf" id="btnDashPDF">
+          <span class="exp-icon">&#x1F4C4;</span>
+          <span>PDF</span>
+          <span class="exp-sub" id="dash-exp-sub-pdf">Todos · Todos os períodos</span>
+        </button>
+        <button class="btn-dash-export btn-dash-excel" id="btnDashExcel">
+          <span class="exp-icon">&#x1F4CA;</span>
+          <span>Excel</span>
+          <span class="exp-sub" id="dash-exp-sub-excel">Todos · Todos os períodos</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ABA: HISTÓRICO -->
+  <div class="tab-panel hidden" id="tab-historico">
+
+    <div class="hist-search-wrap">
+      <span class="hist-search-icon">🔍</span>
+      <input type="text" class="hist-search-input" id="histSearch"
+             placeholder="Buscar por colaborador, posto ou motivo…">
+    </div>
+
+    <div class="hist-count" id="histCount"></div>
+
+    <div class="hist-list" id="histList">
+      <div class="hist-empty">
+        <span class="hist-empty-icon">📋</span>
+        Nenhum lançamento encontrado.
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Modal de edição de FT -->
+<div class="modal-edit-overlay" id="modalEditFT">
+  <div class="modal-edit-box">
+    <div class="modal-edit-handle"></div>
+    <div class="modal-edit-title">✏️ Editar Lançamento FT</div>
+
+    <div class="field">
+      <div class="field-label col-amber"><span class="dot bg-amber"></span>📍 Posto</div>
+      <select id="edit-posto"></select>
+    </div>
+
+    <div class="field">
+      <div class="field-label col-orange"><span class="dot bg-orange"></span>📌 Motivo</div>
+      <select id="edit-motivo">
+        <option>Afastamento</option>
+        <option>Atestado</option>
+        <option>Cobertura de Férias</option>
+        <option>Extra</option>
+        <option>Falta de Efetivo</option>
+        <option>Folga do Vigia</option>
+        <option>Remanejamento Interno</option>
+        <option>Suspensão</option>
+        <option>Treinamento</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <div class="field-label col-blue"><span class="dot bg-blue"></span>🕐 Horário</div>
+      <select id="edit-horario">
+        <option>00:00 – 06:00</option>
+        <option>06:00 – 12:00</option>
+        <option>06:00 – 14:00</option>
+        <option>06:00 – 18:00</option>
+        <option>07:00 – 13:00</option>
+        <option>07:00 – 19:00</option>
+        <option>08:00 – 14:00</option>
+        <option>08:00 – 18:00</option>
+        <option>10:00 – 22:00</option>
+        <option>12:00 – 18:00</option>
+        <option>12:00 – 00:00</option>
+        <option>14:00 – 20:00</option>
+        <option>18:00 – 00:00</option>
+        <option>18:00 – 06:00</option>
+        <option>19:00 – 07:00</option>
+        <option>22:00 – 10:00</option>
+        <option>Plantão 12h Diurno</option>
+        <option>Plantão 12h Noturno</option>
+        <option>Plantão 24h</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <div class="field-label col-green"><span class="dot bg-green"></span>👤 Quem está indo</div>
+      <select id="edit-substituto"></select>
+    </div>
+
+    <div class="field" id="edit-block-quem-faltou">
+      <div class="field-label col-danger"><span class="dot bg-danger"></span>🚨 Quem faltou</div>
+      <select id="edit-quemFaltou"></select>
+    </div>
+
+    <div class="field">
+      <div class="field-label col-green"><span class="dot bg-green"></span>💰 Valor (R$)</div>
+      <div class="input-prefix">
+        <span>R$</span>
+        <input type="number" id="edit-valor" min="0" step="0.01" placeholder="0,00">
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label col-blue"><span class="dot bg-blue"></span>📅 Data / Hora</div>
+      <input type="datetime-local" id="edit-dataHora">
+    </div>
+
+    <div class="modal-edit-btn-row">
+      <button class="btn-edit-cancel" id="btnEditCancel">✕ Cancelar</button>
+      <button class="btn-edit-save"   id="btnEditSave">💾 Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de duplicata -->
+<div class="modal-overlay" id="modalDuplicata">
+  <div class="modal-box">
+    <div class="modal-icon">🚫</div>
+    <div class="modal-title">FT já registrada!</div>
+    <div class="modal-body">
+      <strong id="modal-colab-nome"></strong> já possui uma FT lançada nesta data e horário.
+      <div class="modal-detail">
+        <span class="modal-detail-icon">📅</span>
+        <span id="modal-detalhe"></span>
+      </div>
+      <div class="modal-detail" style="margin-top:6px;">
+        <span class="modal-detail-icon">💡</span>
+        <span>Para outro turno no mesmo dia, selecione um horário diferente.</span>
+      </div>
+    </div>
+    <div class="modal-btn-row">
+      <button class="btn-modal-ok" id="btnModalOk">✔ Entendido</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════════════════════════
+     MÓDULO OFFLINE-FIRST — IndexedDB + Fila de Sincronização
+     ════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+
+  // ── Configuração ────────────────────────────────────────
+  var DB_NAME    = 'folga_trabalhada_db';
+  var DB_VERSION = 1;
+  var STORE_DATA  = 'app_data';   // chave→valor (substitui localStorage)
+  var STORE_QUEUE = 'sync_queue'; // operações pendentes para o servidor
+
+  var db = null;
+
+  // ── Abre IndexedDB ──────────────────────────────────────
+  function openDB(cb) {
+    if (db) { cb(db); return; }
+    var req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = function(e) {
+      var d = e.target.result;
+      if (!d.objectStoreNames.contains(STORE_DATA)) {
+        d.createObjectStore(STORE_DATA); // keyPath manual via key
+      }
+      if (!d.objectStoreNames.contains(STORE_QUEUE)) {
+        var qs = d.createObjectStore(STORE_QUEUE, { keyPath: 'qid', autoIncrement: true });
+        qs.createIndex('by_ts', 'ts');
+      }
+    };
+    req.onsuccess = function(e) { db = e.target.result; cb(db); };
+    req.onerror   = function()  {
+      console.warn('[OfflineSync] IndexedDB indisponível — usando localStorage como fallback.');
+      db = null; cb(null);
+    };
+  }
+
+  // ── API pública de armazenamento (substitui localStorage) ──
+  window.FT_Store = {
+    // Lê uma chave (retorna Promise<value|null>)
+    get: function(key) {
+      return new Promise(function(resolve) {
+        openDB(function(d) {
+          if (!d) { resolve(JSON.parse(localStorage.getItem(key))); return; }
+          var tx  = d.transaction(STORE_DATA, 'readonly');
+          var req = tx.objectStore(STORE_DATA).get(key);
+          req.onsuccess = function() { resolve(req.result !== undefined ? req.result : null); };
+          req.onerror   = function() { resolve(JSON.parse(localStorage.getItem(key))); };
+        });
+      });
+    },
+
+    // Grava uma chave (retorna Promise<void>)
+    set: function(key, value) {
+      // Grava também no localStorage como fallback imediato
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
+      return new Promise(function(resolve) {
+        openDB(function(d) {
+          if (!d) { resolve(); return; }
+          var tx  = d.transaction(STORE_DATA, 'readwrite');
+          var req = tx.objectStore(STORE_DATA).put(value, key);
+          req.onsuccess = function() { resolve(); };
+          req.onerror   = function() { resolve(); };
+        });
+      });
+    },
+
+    // Leitura síncrona (fallback direto ao localStorage — usado na init)
+    getSync: function(key) {
+      try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch(e) { return null; }
+    }
+  };
+
+  // ── Fila de sincronização ───────────────────────────────
+  // Cada entrada: { qid, op: 'set'|'delete', store: 'ft_registros'|..., payload, ts }
+  window.FT_SyncQueue = {
+    // Enfileira uma operação
+    enqueue: function(op, store, payload) {
+      return new Promise(function(resolve) {
+        openDB(function(d) {
+          if (!d) { resolve(); return; }
+          var entry = { op: op, store: store, payload: payload, ts: Date.now() };
+          var tx  = d.transaction(STORE_QUEUE, 'readwrite');
+          tx.objectStore(STORE_QUEUE).add(entry);
+          tx.oncomplete = function() { resolve(); SyncEngine.updateBadge(); };
+          tx.onerror    = function() { resolve(); };
+        });
+      });
+    },
+
+    // Lê todas as entradas pendentes
+    getAll: function() {
+      return new Promise(function(resolve) {
+        openDB(function(d) {
+          if (!d) { resolve([]); return; }
+          var tx  = d.transaction(STORE_QUEUE, 'readonly');
+          var req = tx.objectStore(STORE_QUEUE).getAll();
+          req.onsuccess = function() { resolve(req.result || []); };
+          req.onerror   = function() { resolve([]); };
+        });
+      });
+    },
+
+    // Remove entrada pelo qid (após sync bem-sucedido)
+    remove: function(qid) {
+      return new Promise(function(resolve) {
+        openDB(function(d) {
+          if (!d) { resolve(); return; }
+          var tx = d.transaction(STORE_QUEUE, 'readwrite');
+          tx.objectStore(STORE_QUEUE).delete(qid);
+          tx.oncomplete = function() { resolve(); SyncEngine.updateBadge(); };
+          tx.onerror    = function() { resolve(); };
+        });
+      });
+    },
+
+    count: function() {
+      return new Promise(function(resolve) {
+        openDB(function(d) {
+          if (!d) { resolve(0); return; }
+          var tx  = d.transaction(STORE_QUEUE, 'readonly');
+          var req = tx.objectStore(STORE_QUEUE).count();
+          req.onsuccess = function() { resolve(req.result || 0); };
+          req.onerror   = function() { resolve(0); };
+        });
+      });
+    }
+  };
+
+  // ── Motor de sincronização ──────────────────────────────
+  // Nesta implementação o "servidor" é configurável.
+  // Por padrão usa uma estratégia local (sem servidor real),
+  // mas expõe window.FT_SyncEngine.setRemote(fn) para plugar Firebase/REST.
+  window.SyncEngine = {
+    _online: navigator.onLine,
+    _syncing: false,
+    _remoteHandler: null,  // fn(entry) → Promise<bool>
+
+    // Registra o handler remoto (ex: Firebase)
+    setRemote: function(fn) {
+      this._remoteHandler = fn;
+    },
+
+    // Atualiza o indicador visual
+    updateStatus: function(state) {
+      var el    = document.getElementById('sync-status');
+      var label = document.getElementById('sync-label');
+      if (!el || !label) return;
+      el.className = state;
+      var map = { online: 'Online', offline: 'Offline', syncing: 'Sincronizando…' };
+      label.textContent = map[state] || state;
+    },
+
+    updateBadge: function() {
+      FT_SyncQueue.count().then(function(n) {
+        var badge = document.getElementById('pending-badge');
+        var cnt   = document.getElementById('pending-count');
+        if (!badge || !cnt) return;
+        cnt.textContent = n;
+        badge.classList.toggle('visible', n > 0);
+      });
+    },
+
+    // Tenta sincronizar a fila
+    flush: function() {
+      var self = this;
+      if (self._syncing || !self._online) return Promise.resolve();
+      self._syncing = true;
+      self.updateStatus('syncing');
+
+      return FT_SyncQueue.getAll().then(function(entries) {
+        if (!entries.length) {
+          self._syncing = false;
+          self.updateStatus('online');
+          return;
+        }
+
+        // Processa entradas em série
+        return entries.reduce(function(chain, entry) {
+          return chain.then(function() {
+            // Se não há handler remoto, apenas remove da fila (modo local)
+            var handler = self._remoteHandler
+              ? self._remoteHandler(entry)
+              : Promise.resolve(true);
+
+            return handler.then(function(ok) {
+              if (ok !== false) return FT_SyncQueue.remove(entry.qid);
+            }).catch(function() { /* mantém na fila se falhar */ });
+          });
+        }, Promise.resolve());
+      }).then(function() {
+        self._syncing = false;
+        self.updateStatus(self._online ? 'online' : 'offline');
+        self.updateBadge();
+        // Notifica a UI que os dados podem ter mudado
+        if (typeof window.onSyncComplete === 'function') window.onSyncComplete();
+      }).catch(function() {
+        self._syncing = false;
+        self.updateStatus(self._online ? 'online' : 'offline');
+      });
+    },
+
+    // Inicializa listeners de rede
+    init: function() {
+      var self = this;
+      self.updateStatus(navigator.onLine ? 'online' : 'offline');
+      self.updateBadge();
+
+      window.addEventListener('online', function() {
+        self._online = true;
+        if (typeof window.showToast === 'function') {
+          window.showToast('🌐 Conexão restabelecida — sincronizando…', 'success');
+        }
+        self.flush();
+      });
+
+      window.addEventListener('offline', function() {
+        self._online = false;
+        self.updateStatus('offline');
+        if (typeof window.showToast === 'function') {
+          window.showToast('📴 Sem conexão — dados salvos localmente.', 'error');
+        }
+        self.updateBadge();
+      });
+
+      // Inicializa o DB ao carregar
+      openDB(function() {
+        // Migra dados existentes do localStorage para IndexedDB silenciosamente
+        ['ft_registros', 'ft_colaboradores', 'ft_postos'].forEach(function(key) {
+          var raw = localStorage.getItem(key);
+          if (raw) {
+            try { FT_Store.set(key, JSON.parse(raw)); } catch(e) {}
+          }
+        });
+        // Tenta um flush inicial se online
+        if (navigator.onLine) self.flush();
+      });
+    }
+  };
+
+  // Inicia após o DOM estar pronto
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { SyncEngine.init(); });
+  } else {
+    SyncEngine.init();
+  }
+}());
+</script>
+
+<script>
+(function () {
+
+  // ── Chaves do localStorage ──────────────────────
+  var LS_COLAB  = 'ft_colaboradores';
+  var LS_POSTOS = 'ft_postos';
+
+  // ── Carrega dados do localStorage / IndexedDB ───
+  // (FT_Store.getSync lê do localStorage imediatamente para a init;
+  //  IndexedDB é assíncrono e é usado nas gravações)
+  function loadStorage(key) {
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+  }
+  function saveStorage(key, data) {
+    try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
+    // Grava também no IndexedDB e enfileira sync
+    if (window.FT_Store) FT_Store.set(key, data);
+    if (window.FT_SyncQueue) FT_SyncQueue.enqueue('set', key, data);
+  }
+
+  // ── Estado global ───────────────────────────────
+  var colaboradores = loadStorage(LS_COLAB);
+  var postos        = loadStorage(LS_POSTOS);
+  var filtroRelatorio = 'todos';
+
+  // ── Helpers ─────────────────────────────────────
+  function sortAlpha(arr) {
+    return arr.slice().sort(function(a, b) {
+      return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
+    });
+  }
+
+  function fillSelect(id, items) {
+    var sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">-- Selecione --</option>';
+    sortAlpha(items).forEach(function(item) {
+      var opt = document.createElement('option');
+      opt.value = item.nome;
+      opt.textContent = item.nome;
+      sel.appendChild(opt);
+    });
+  }
+
+  function gerarId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  // ── Toast ────────────────────────────────────────
+  function showToast(msg, tipo) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + (tipo || 'success') + ' show';
+    setTimeout(function() { t.classList.remove('show'); }, 3500);
+  }
+
+  // ── Data/hora padrão ────────────────────────────
+  function setDefaultDateTime() {
+    var now = new Date();
+    var pad = function(n) { return String(n).padStart(2, '0'); };
+    var val = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) +
+              'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+    document.getElementById('dataHora').value = val;
+  }
+
+  // ── Lógica campos por motivo ─────────────────────
+  //
+  // "Quem está indo" → SEMPRE visível e obrigatório (porteiro/colaborador que vai trabalhar)
+  //
+  // "Quem faltou" → aparece apenas quando há um ausente identificável:
+  //   Atestado | Suspensão | Folga do Vigia | Cobertura de Férias |
+  //   Afastamento | Remanejamento Interno | Falta de Efetivo
+  //   (Extra e Treinamento NÃO têm ausente — só "quem está indo")
+
+  var MOTIVOS_COM_FALTOU = [
+    'Atestado', 'Suspensão', 'Folga do Vigia', 'Cobertura de Férias',
+    'Afastamento', 'Remanejamento Interno', 'Falta de Efetivo'
+  ];
+
+  function handleMotivoChange() {
+    var motivo      = document.getElementById('motivo').value;
+    var blockFaltou = document.getElementById('block-quem-faltou');
+    var selFaltou   = document.getElementById('quemFaltou');
+    var hintFaltou  = document.getElementById('hint-quem-faltou');
+
+    if (motivo && MOTIVOS_COM_FALTOU.indexOf(motivo) !== -1) {
+      blockFaltou.classList.remove('hidden');
+      if (motivo === 'Cobertura de Férias') {
+        selFaltou.required = false;
+        hintFaltou.textContent = 'Opcional para cobertura de férias';
+        hintFaltou.classList.add('visible');
+      } else {
+        selFaltou.required = true;
+        hintFaltou.textContent = '';
+        hintFaltou.classList.remove('visible');
+      }
+    } else {
+      blockFaltou.classList.add('hidden');
+      selFaltou.required = false;
+      selFaltou.value = '';
+    }
+  }
+
+  // ── Envio do formulário ──────────────────────────
+  function submitForm(e) {
+    e.preventDefault();
+
+    var motivo     = document.getElementById('motivo').value;
+    var posto      = document.getElementById('posto').value;
+    var horario    = document.getElementById('horario').value;
+    var substituto = document.getElementById('substituto').value;
+    var quemFaltou = document.getElementById('quemFaltou').value;
+    var valor      = document.getElementById('valor').value;
+    var dataHora   = document.getElementById('dataHora').value;
+
+    if (!posto || !motivo || !horario || !substituto || !dataHora) {
+      showToast('⚠️ Preencha todos os campos obrigatórios.', 'error');
+      return;
+    }
+    if (MOTIVOS_COM_FALTOU.indexOf(motivo) !== -1 && motivo !== 'Cobertura de Férias' && !quemFaltou) {
+      showToast('⚠️ Informe quem faltou.', 'error');
+      return;
+    }
+
+    // ── Verificação de duplicata ──────────────────────
+    // Bloqueia se mesmo colaborador + mesma data (dia) + mesmo horário já existir
+    var ftsExist = JSON.parse(localStorage.getItem('ft_registros') || '[]');
+    var dataLancamento = dataHora.slice(0, 10); // 'YYYY-MM-DD'
+
+    var duplicata = ftsExist.find(function(ft) {
+      var ftData = (ft.dataHora || '').slice(0, 10);
+      return ft.substituto === substituto
+          && ftData === dataLancamento
+          && ft.horario === horario;
+    });
+
+    if (duplicata) {
+      var dtFmt = new Date(duplicata.dataHora).toLocaleDateString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+      });
+      document.getElementById('modal-colab-nome').textContent = substituto;
+      document.getElementById('modal-detalhe').textContent =
+        'Data: ' + dtFmt + '  ·  Horário: ' + horario + '  ·  Posto: ' + (duplicata.posto || '—');
+      document.getElementById('modalDuplicata').classList.add('show');
+      return;
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin">&#x27F3;</span> Registrando…';
+
+    try {
+      var fts = JSON.parse(localStorage.getItem('ft_registros') || '[]');
+      fts.push({
+        id:          gerarId(),
+        posto:       posto,
+        motivo:      motivo,
+        horario:     horario,
+        substituto:  substituto || null,
+        quemFaltou:  quemFaltou || null,
+        valor:       parseFloat(valor) || 0,
+        dataHora:    dataHora,
+        criadoEm:    new Date().toISOString()
+      });
+      localStorage.setItem('ft_registros', JSON.stringify(fts));
+      if (window.FT_Store)     FT_Store.set('ft_registros', fts);
+      if (window.FT_SyncQueue) FT_SyncQueue.enqueue('set', 'ft_registros', fts);
+    } catch(e) {}
+
+    setTimeout(function() {
+      showToast('✅ FT registrada com sucesso!', 'success');
+      document.getElementById('ftForm').reset();
+      setDefaultDateTime();
+      handleMotivoChange();
+      btn.disabled = false;
+      btn.innerHTML = '&#x1F4BE; Registrar FT';
+      // Atualiza histórico em background
+      var histTab = document.getElementById('tab-historico');
+      if (histTab && !histTab.classList.contains('hidden')) renderHistorico();
+    }, 400);
+  }
+
+  // ── Colaboradores ────────────────────────────────
+  function renderColaboradoresList() {
+    var list = document.getElementById('listaColaboradores');
+    if (!colaboradores.length) {
+      list.innerHTML = '<p class="empty-state">Nenhum colaborador cadastrado.</p>';
+      return;
+    }
+    list.innerHTML = sortAlpha(colaboradores).map(function(c) {
+      return '<div class="list-item">' +
+        '<span>&#x1F464; ' + escHtml(c.nome) + '</span>' +
+        '<button class="btn-remove" data-id="' + c.id + '" data-tipo="colab">&#x2715;</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function addColaborador() {
+    var input = document.getElementById('inputColaborador');
+    var nome  = input.value.trim();
+    if (!nome) return;
+
+    var existe = colaboradores.some(function(c) {
+      return c.nome.toLowerCase() === nome.toLowerCase();
+    });
+    if (existe) { showToast('⚠️ Colaborador já cadastrado.', 'error'); return; }
+
+    colaboradores.push({ id: gerarId(), nome: nome });
+    saveStorage(LS_COLAB, colaboradores);
+    fillSelect('substituto',  colaboradores);
+    fillSelect('quemFaltou',  colaboradores);
+    fillSelect('substituido', colaboradores);
+    fillDashSelect();
+    renderColaboradoresList();
+    input.value = '';
+    showToast('✅ Colaborador adicionado!', 'success');
+  }
+
+  function removeColaborador(id) {
+    var item = colaboradores.find(function(c) { return c.id === id; });
+    if (!item) return;
+    if (!confirm('Remover colaborador "' + item.nome + '"?')) return;
+    colaboradores = colaboradores.filter(function(c) { return c.id !== id; });
+    saveStorage(LS_COLAB, colaboradores);
+    fillSelect('substituto',  colaboradores);
+    fillSelect('quemFaltou',  colaboradores);
+    fillSelect('substituido', colaboradores);
+    fillDashSelect();
+    renderColaboradoresList();
+    showToast('&#x1F5D1;&#xFE0F; Colaborador removido.', 'success');
+  }
+
+  // ── Postos ───────────────────────────────────────
+  function renderPostosList() {
+    var list = document.getElementById('listaPostos');
+    if (!postos.length) {
+      list.innerHTML = '<p class="empty-state">Nenhum posto cadastrado.</p>';
+      return;
+    }
+    list.innerHTML = sortAlpha(postos).map(function(p) {
+      return '<div class="list-item">' +
+        '<span>&#x1F4CD; ' + escHtml(p.nome) + '</span>' +
+        '<button class="btn-remove" data-id="' + p.id + '" data-tipo="posto">&#x2715;</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function addPosto() {
+    var input = document.getElementById('inputPosto');
+    var nome  = input.value.trim();
+    if (!nome) return;
+
+    var existe = postos.some(function(p) {
+      return p.nome.toLowerCase() === nome.toLowerCase();
+    });
+    if (existe) { showToast('⚠️ Posto já cadastrado.', 'error'); return; }
+
+    postos.push({ id: gerarId(), nome: nome });
+    saveStorage(LS_POSTOS, postos);
+    fillSelect('posto', postos);
+    fillDashSelect();
+    renderPostosList();
+    input.value = '';
+    showToast('✅ Posto adicionado!', 'success');
+  }
+
+  function removePosto(id) {
+    var item = postos.find(function(p) { return p.id === id; });
+    if (!item) return;
+    if (!confirm('Remover posto "' + item.nome + '"?')) return;
+    postos = postos.filter(function(p) { return p.id !== id; });
+    saveStorage(LS_POSTOS, postos);
+    fillSelect('posto', postos);
+    fillDashSelect();
+    renderPostosList();
+    showToast('&#x1F5D1;&#xFE0F; Posto removido.', 'success');
+  }
+
+  // ── Escape HTML ──────────────────────────────────
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Histórico ─────────────────────────────────────
+  var histQuery = '';
+
+  function renderHistorico() {
+    var fts = [];
+    try { fts = JSON.parse(localStorage.getItem('ft_registros') || '[]'); } catch(e) {}
+
+    // Ordena do mais novo para o mais antigo
+    fts = fts.slice().sort(function(a, b) {
+      return new Date(b.dataHora || b.criadoEm) - new Date(a.dataHora || a.criadoEm);
+    });
+
+    // Filtra pela busca
+    var q = histQuery.toLowerCase().trim();
+    if (q) {
+      fts = fts.filter(function(ft) {
+        return (ft.substituto  || '').toLowerCase().indexOf(q) !== -1
+            || (ft.posto       || '').toLowerCase().indexOf(q) !== -1
+            || (ft.motivo      || '').toLowerCase().indexOf(q) !== -1
+            || (ft.quemFaltou  || '').toLowerCase().indexOf(q) !== -1;
+      });
+    }
+
+    var countEl = document.getElementById('histCount');
+    var listEl  = document.getElementById('histList');
+    if (!countEl || !listEl) return;
+
+    countEl.innerHTML = fts.length
+      ? '<span>' + fts.length + '</span> lançamento' + (fts.length !== 1 ? 's' : '') + ' encontrado' + (fts.length !== 1 ? 's' : '')
+      : '';
+
+    if (!fts.length) {
+      listEl.innerHTML = '<div class="hist-empty"><span class="hist-empty-icon">📋</span>' +
+        (q ? 'Nenhum resultado para "<strong>' + escHtml(q) + '</strong>".' : 'Nenhum lançamento registrado ainda.') +
+        '</div>';
+      return;
+    }
+
+    // Cores por motivo
+    var motivoCor = {
+      'Atestado':             'rgba(252,92,101,.18)',
+      'Suspensão':            'rgba(252,92,101,.18)',
+      'Afastamento':          'rgba(252,92,101,.18)',
+      'Folga do Vigia':       'rgba(247,183,49,.18)',
+      'Cobertura de Férias':  'rgba(69,170,242,.18)',
+      'Remanejamento Interno':'rgba(165,94,234,.18)',
+      'Falta de Efetivo':     'rgba(253,150,68,.18)',
+      'Extra':                'rgba(38,222,129,.18)',
+      'Treinamento':          'rgba(43,203,186,.18)'
+    };
+    var motivoBorda = {
+      'Atestado':             '#fc5c65',
+      'Suspensão':            '#fc5c65',
+      'Afastamento':          '#fc5c65',
+      'Folga do Vigia':       '#f7b731',
+      'Cobertura de Férias':  '#45aaf2',
+      'Remanejamento Interno':'#a55eea',
+      'Falta de Efetivo':     '#fd9644',
+      'Extra':                '#26de81',
+      'Treinamento':          '#2bcbba'
+    };
+
+    listEl.innerHTML = fts.map(function(ft) {
+      var dtStr = ft.dataHora
+        ? new Date(ft.dataHora).toLocaleString('pt-BR', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          })
+        : '—';
+      var cor    = motivoCor[ft.motivo]    || 'rgba(42,51,71,.5)';
+      var borda  = motivoBorda[ft.motivo]  || '#2a3347';
+      var valor  = (ft.valor || 0).toFixed(2).replace('.', ',');
+
+      var faltouHtml = ft.quemFaltou
+        ? '<span class="hist-quem-faltou">🚨 Faltou: ' + escHtml(ft.quemFaltou) + '</span>'
+        : '';
+
+      return '<div class="hist-card" style="background:' + cor + ';border-color:' + borda + ';" data-ft-id="' + ft.id + '">' +
+               '<div class="hist-card-header">' +
+                 '<div class="hist-colab">👤 ' + escHtml(ft.substituto || '—') + '</div>' +
+                 '<div class="hist-valor">R$ ' + valor + '</div>' +
+               '</div>' +
+               '<div class="hist-tags">' +
+                 '<span class="hist-tag hist-tag-posto">📍 ' + escHtml(ft.posto || '—') + '</span>' +
+                 '<span class="hist-tag hist-tag-motivo">📌 ' + escHtml(ft.motivo || '—') + '</span>' +
+                 '<span class="hist-tag hist-tag-horario">🕐 ' + escHtml(ft.horario || '—') + '</span>' +
+               '</div>' +
+               '<div class="hist-footer">' +
+                 '<span class="hist-data">📅 ' + dtStr + '</span>' +
+                 faltouHtml +
+               '</div>' +
+               '<div class="hist-actions">' +
+                 '<button class="btn-hist-edit" data-id="' + ft.id + '">✏️ Editar</button>' +
+                 '<button class="btn-hist-del"  data-id="' + ft.id + '">🗑️ Excluir</button>' +
+               '</div>' +
+             '</div>';
+    }).join('');
+  }
+
+  // ── Excluir FT ──────────────────────────────────
+  function excluirFT(id) {
+    if (!confirm('Excluir este lançamento? Esta ação não pode ser desfeita.')) return;
+    var fts = JSON.parse(localStorage.getItem('ft_registros') || '[]');
+    var novo = fts.filter(function(ft) { return ft.id !== id; });
+    localStorage.setItem('ft_registros', JSON.stringify(novo));
+    if (window.FT_Store)     FT_Store.set('ft_registros', novo);
+    if (window.FT_SyncQueue) FT_SyncQueue.enqueue('set', 'ft_registros', novo);
+    renderHistorico();
+    renderDashboard();
+    showToast('🗑️ Lançamento excluído.', 'success');
+  }
+
+  // ── Editar FT — abre modal ───────────────────────
+  var editingFTId = null;
+
+  function abrirEditarFT(id) {
+    var fts = JSON.parse(localStorage.getItem('ft_registros') || '[]');
+    var ft  = fts.find(function(f) { return f.id === id; });
+    if (!ft) return;
+    editingFTId = id;
+
+    // Preenche select de postos
+    var editPosto = document.getElementById('edit-posto');
+    editPosto.innerHTML = '';
+    sortAlpha(postos).forEach(function(p) {
+      var o = document.createElement('option');
+      o.value = p.nome; o.textContent = p.nome;
+      if (p.nome === ft.posto) o.selected = true;
+      editPosto.appendChild(o);
+    });
+    if (ft.posto && !postos.find(function(p){ return p.nome === ft.posto; })) {
+      var o = document.createElement('option');
+      o.value = ft.posto; o.textContent = ft.posto + ' (removido)'; o.selected = true;
+      editPosto.insertBefore(o, editPosto.firstChild);
+    }
+
+    var fillEditSel = function(selId, list, val) {
+      var sel = document.getElementById(selId);
+      sel.innerHTML = '<option value="">-- Nenhum --</option>';
+      sortAlpha(list).forEach(function(item) {
+        var o = document.createElement('option');
+        o.value = item.nome; o.textContent = item.nome;
+        if (item.nome === val) o.selected = true;
+        sel.appendChild(o);
+      });
+      if (val && !list.find(function(x){ return x.nome === val; })) {
+        var o = document.createElement('option');
+        o.value = val; o.textContent = val + ' (removido)'; o.selected = true;
+        sel.insertBefore(o, sel.firstChild);
+      }
+    };
+
+    fillEditSel('edit-substituto', colaboradores, ft.substituto);
+    fillEditSel('edit-quemFaltou', colaboradores, ft.quemFaltou);
+
+    document.getElementById('edit-motivo').value   = ft.motivo  || '';
+    document.getElementById('edit-horario').value  = ft.horario || '';
+    document.getElementById('edit-valor').value    = ft.valor != null ? ft.valor : '';
+    document.getElementById('edit-dataHora').value = ft.dataHora ? ft.dataHora.slice(0,16) : '';
+
+    syncEditMotivoBlock();
+    document.getElementById('modalEditFT').classList.add('show');
+  }
+
+  function syncEditMotivoBlock() {
+    var motivo = document.getElementById('edit-motivo').value;
+    var block  = document.getElementById('edit-block-quem-faltou');
+    var sel    = document.getElementById('edit-quemFaltou');
+    if (MOTIVOS_COM_FALTOU.indexOf(motivo) !== -1) {
+      block.style.display = '';
+      sel.required = (motivo !== 'Cobertura de Férias');
+    } else {
+      block.style.display = 'none';
+      sel.required = false;
+      sel.value = '';
+    }
+  }
+
+  function salvarEditFT() {
+    var posto      = document.getElementById('edit-posto').value;
+    var motivo     = document.getElementById('edit-motivo').value;
+    var horario    = document.getElementById('edit-horario').value;
+    var substituto = document.getElementById('edit-substituto').value;
+    var quemFaltou = document.getElementById('edit-quemFaltou').value;
+    var valor      = document.getElementById('edit-valor').value;
+    var dataHora   = document.getElementById('edit-dataHora').value;
+
+    if (!posto || !motivo || !horario || !substituto || !dataHora) {
+      showToast('⚠️ Preencha todos os campos obrigatórios.', 'error'); return;
+    }
+    if (MOTIVOS_COM_FALTOU.indexOf(motivo) !== -1 && motivo !== 'Cobertura de Férias' && !quemFaltou) {
+      showToast('⚠️ Informe quem faltou.', 'error'); return;
+    }
+
+    var fts = JSON.parse(localStorage.getItem('ft_registros') || '[]');
+    fts = fts.map(function(ft) {
+      if (ft.id !== editingFTId) return ft;
+      return {
+        id:         ft.id,
+        posto:      posto,
+        motivo:     motivo,
+        horario:    horario,
+        substituto: substituto,
+        quemFaltou: quemFaltou || null,
+        valor:      parseFloat(valor) || 0,
+        dataHora:   dataHora,
+        criadoEm:   ft.criadoEm
+      };
+    });
+    localStorage.setItem('ft_registros', JSON.stringify(fts));
+    if (window.FT_Store)     FT_Store.set('ft_registros', fts);
+    if (window.FT_SyncQueue) FT_SyncQueue.enqueue('set', 'ft_registros', fts);
+
+    document.getElementById('modalEditFT').classList.remove('show');
+    editingFTId = null;
+    renderHistorico();
+    renderDashboard();
+    showToast('✅ FT atualizada com sucesso!', 'success');
+  }
+
+  // Delegação de cliques no histList
+  function onHistListClick(e) {
+    var btnEdit = e.target.closest('.btn-hist-edit');
+    var btnDel  = e.target.closest('.btn-hist-del');
+    if (btnEdit) abrirEditarFT(btnEdit.dataset.id);
+    if (btnDel)  excluirFT(btnDel.dataset.id);
+  }
+
+  // ── Navegação abas ───────────────────────────────
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.tab === tabId);
+    });
+    document.querySelectorAll('.tab-panel').forEach(function(p) {
+      p.classList.toggle('hidden', p.id !== tabId);
+    });
+    if (tabId === 'tab-dashboard') {
+      fillDashSelect();
+      setTimeout(renderDashboard, 50);
+    }
+    if (tabId === 'tab-historico') {
+      renderHistorico();
+    }
+  }
+
+  // ── Filtro relatório ─────────────────────────────
+  function setFiltroRelatorio(filtro) {
+    filtroRelatorio = filtro;
+    document.querySelectorAll('.btn-filtro').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.filtro === filtro);
+    });
+    var leg = { todos: 'Postos + Colaboradores', postos: 'Apenas Postos', colaboradores: 'Apenas Colaboradores' };
+    document.getElementById('relatorio-sub-pdf').textContent   = leg[filtro];
+    document.getElementById('relatorio-sub-excel').textContent = leg[filtro];
+  }
+
+  // ── Exportar PDF ─────────────────────────────────
+  function exportarCadastrosPDF() {
+    var jsPDF   = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDF) { showToast('❌ Biblioteca PDF não carregada.', 'error'); return; }
+
+    var docPdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    var colabs = filtroRelatorio === 'postos'        ? [] : sortAlpha(colaboradores);
+    var psts   = filtroRelatorio === 'colaboradores' ? [] : sortAlpha(postos);
+    var dataHoje = new Date().toLocaleDateString('pt-BR');
+    var horaHoje = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+    var titulos = { todos: 'RELATORIO DE CADASTROS', postos: 'RELATORIO DE POSTOS', colaboradores: 'RELATORIO DE COLABORADORES' };
+
+    docPdf.setFillColor(13, 17, 23); docPdf.rect(0, 0, 210, 297, 'F');
+    docPdf.setFillColor(28, 34, 48); docPdf.rect(0, 0, 210, 38, 'F');
+    docPdf.setDrawColor(247, 183, 49); docPdf.setLineWidth(0.8); docPdf.line(0, 38, 210, 38);
+    docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(16); docPdf.setTextColor(247, 183, 49);
+    docPdf.text(titulos[filtroRelatorio], 105, 16, { align: 'center' });
+    docPdf.setFontSize(9); docPdf.setTextColor(139, 151, 176);
+    docPdf.text('Grupo M.S Seguranca e Servicos', 105, 23, { align: 'center' });
+    docPdf.text('Gerado em: ' + dataHoje + ' as ' + horaHoje, 105, 29, { align: 'center' });
+
+    var y = 45;
+
+    if (filtroRelatorio === 'todos') {
+      docPdf.setFillColor(22, 27, 34);
+      docPdf.roundedRect(10, y, 90, 24, 3, 3, 'F');
+      docPdf.roundedRect(110, y, 90, 24, 3, 3, 'F');
+      docPdf.setFontSize(20); docPdf.setTextColor(38, 222, 129); docPdf.setFont('helvetica', 'bold');
+      docPdf.text(String(colabs.length), 55, y + 12, { align: 'center' });
+      docPdf.setFontSize(8); docPdf.setTextColor(139, 151, 176);
+      docPdf.text('COLABORADORES', 55, y + 18, { align: 'center' });
+      docPdf.setFontSize(20); docPdf.setTextColor(247, 183, 49);
+      docPdf.text(String(psts.length), 155, y + 12, { align: 'center' });
+      docPdf.setFontSize(8); docPdf.setTextColor(139, 151, 176);
+      docPdf.text('POSTOS', 155, y + 18, { align: 'center' });
+      y += 34;
+    } else if (filtroRelatorio === 'colaboradores') {
+      docPdf.setFillColor(22, 27, 34); docPdf.roundedRect(55, y, 100, 24, 3, 3, 'F');
+      docPdf.setFontSize(20); docPdf.setTextColor(38, 222, 129); docPdf.setFont('helvetica', 'bold');
+      docPdf.text(String(colabs.length), 105, y + 12, { align: 'center' });
+      docPdf.setFontSize(8); docPdf.setTextColor(139, 151, 176);
+      docPdf.text('COLABORADORES', 105, y + 18, { align: 'center' });
+      y += 34;
+    } else {
+      docPdf.setFillColor(22, 27, 34); docPdf.roundedRect(55, y, 100, 24, 3, 3, 'F');
+      docPdf.setFontSize(20); docPdf.setTextColor(247, 183, 49); docPdf.setFont('helvetica', 'bold');
+      docPdf.text(String(psts.length), 105, y + 12, { align: 'center' });
+      docPdf.setFontSize(8); docPdf.setTextColor(139, 151, 176);
+      docPdf.text('POSTOS DE TRABALHO', 105, y + 18, { align: 'center' });
+      y += 34;
+    }
+
+    if (colabs.length > 0) {
+      docPdf.setFillColor(22, 34, 22); docPdf.rect(10, y, 190, 10, 'F');
+      docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(10); docPdf.setTextColor(38, 222, 129);
+      docPdf.text('COLABORADORES', 15, y + 7);
+      docPdf.setTextColor(139, 151, 176); docPdf.setFontSize(8);
+      docPdf.text('Total: ' + colabs.length, 185, y + 7, { align: 'right' });
+      y += 14;
+      colabs.forEach(function(c, i) {
+        if (y > 270) { docPdf.addPage(); docPdf.setFillColor(13,17,23); docPdf.rect(0,0,210,297,'F'); y = 20; }
+        docPdf.setFillColor(i%2===0?22:18, i%2===0?27:22, i%2===0?34:30);
+        docPdf.rect(10, y, 190, 8, 'F');
+        docPdf.setFont('helvetica', 'normal'); docPdf.setFontSize(9); docPdf.setTextColor(232, 237, 245);
+        docPdf.text(String(i+1).padStart(2,'0') + '.  ' + c.nome, 15, y + 5.5);
+        y += 8;
+      });
+      y += 10;
+    }
+
+    if (psts.length > 0) {
+      if (y > 260) { docPdf.addPage(); docPdf.setFillColor(13,17,23); docPdf.rect(0,0,210,297,'F'); y = 20; }
+      docPdf.setFillColor(34, 28, 10); docPdf.rect(10, y, 190, 10, 'F');
+      docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(10); docPdf.setTextColor(247, 183, 49);
+      docPdf.text('POSTOS DE TRABALHO', 15, y + 7);
+      docPdf.setTextColor(139, 151, 176); docPdf.setFontSize(8);
+      docPdf.text('Total: ' + psts.length, 185, y + 7, { align: 'right' });
+      y += 14;
+      psts.forEach(function(p, i) {
+        if (y > 270) { docPdf.addPage(); docPdf.setFillColor(13,17,23); docPdf.rect(0,0,210,297,'F'); y = 20; }
+        docPdf.setFillColor(i%2===0?22:18, i%2===0?27:22, i%2===0?34:30);
+        docPdf.rect(10, y, 190, 8, 'F');
+        docPdf.setFont('helvetica', 'normal'); docPdf.setFontSize(9); docPdf.setTextColor(232, 237, 245);
+        docPdf.text(String(i+1).padStart(2,'0') + '.  ' + p.nome, 15, y + 5.5);
+        y += 8;
+      });
+    }
+
+    var totalPages = docPdf.internal.getNumberOfPages();
+    for (var pg = 1; pg <= totalPages; pg++) {
+      docPdf.setPage(pg);
+      docPdf.setDrawColor(42,51,71); docPdf.setLineWidth(0.4); docPdf.line(10,285,200,285);
+      docPdf.setFont('helvetica','normal'); docPdf.setFontSize(7); docPdf.setTextColor(139,151,176);
+      docPdf.text('Grupo M.S Seguranca e Servicos  |  Sistema de Folga Trabalhada', 105, 290, { align:'center' });
+      docPdf.text('Pagina ' + pg + ' / ' + totalPages, 195, 290, { align:'right' });
+    }
+
+    var suf = { todos:'Completo', postos:'Postos', colaboradores:'Colaboradores' }[filtroRelatorio];
+    docPdf.save('Cadastros_FT_' + suf + '_' + dataHoje.replace(/\//g,'-') + '.pdf');
+    showToast('&#x1F4C4; PDF gerado com sucesso!', 'success');
+  }
+
+  // ── Exportar Excel ───────────────────────────────
+  function exportarCadastrosExcel() {
+    var XLSX = window.XLSX;
+    if (!XLSX) { showToast('❌ Biblioteca Excel não carregada.', 'error'); return; }
+
+    var colabs = filtroRelatorio === 'postos'        ? [] : sortAlpha(colaboradores);
+    var psts   = filtroRelatorio === 'colaboradores' ? [] : sortAlpha(postos);
+    var dataHoje = new Date().toLocaleDateString('pt-BR');
+    var wb = XLSX.utils.book_new();
+
+    if (colabs.length > 0) {
+      var d = [['RELATORIO DE COLABORADORES - Grupo M.S Seguranca e Servicos'],['Gerado em: ' + dataHoje],[],['#','Nome do Colaborador']];
+      colabs.forEach(function(c, i) { d.push([i+1, c.nome]); });
+      d.push([], ['Total: ' + colabs.length + ' colaboradores']);
+      var ws = XLSX.utils.aoa_to_sheet(d);
+      ws['!cols'] = [{wch:5},{wch:40}];
+      ws['!merges'] = [{s:{r:0,c:0},e:{r:0,c:1}}];
+      XLSX.utils.book_append_sheet(wb, ws, 'Colaboradores');
+    }
+
+    if (psts.length > 0) {
+      var d2 = [['RELATORIO DE POSTOS - Grupo M.S Seguranca e Servicos'],['Gerado em: ' + dataHoje],[],['#','Nome do Posto']];
+      psts.forEach(function(p, i) { d2.push([i+1, p.nome]); });
+      d2.push([], ['Total: ' + psts.length + ' postos']);
+      var ws2 = XLSX.utils.aoa_to_sheet(d2);
+      ws2['!cols'] = [{wch:5},{wch:40}];
+      ws2['!merges'] = [{s:{r:0,c:0},e:{r:0,c:1}}];
+      XLSX.utils.book_append_sheet(wb, ws2, 'Postos');
+    }
+
+    if (filtroRelatorio === 'todos') {
+      var r = [['RESUMO GERAL'],[],['Item','Quantidade'],['Colaboradores',colabs.length],['Postos de Trabalho',psts.length]];
+      var wsr = XLSX.utils.aoa_to_sheet(r);
+      wsr['!cols'] = [{wch:25},{wch:15}];
+      XLSX.utils.book_append_sheet(wb, wsr, 'Resumo');
+    }
+
+    if (!wb.SheetNames.length) { showToast('⚠️ Nenhum dado para exportar.', 'error'); return; }
+    var suf = { todos:'Completo', postos:'Postos', colaboradores:'Colaboradores' }[filtroRelatorio];
+    XLSX.writeFile(wb, 'Cadastros_FT_' + suf + '_' + dataHoje.replace(/\//g,'-') + '.xlsx');
+    showToast('&#x1F4CA; Excel gerado com sucesso!', 'success');
+  }
+
+  // ── Delegação de eventos para botões dinâmicos ───
+  function onListClick(e) {
+    var btn = e.target.closest('.btn-remove');
+    if (!btn) return;
+    var id   = btn.dataset.id;
+    var tipo = btn.dataset.tipo;
+    if (tipo === 'colab') removeColaborador(id);
+    else if (tipo === 'posto') removePosto(id);
+  }
+
+  // ════════════════════════════════════════════════
+  // ── DASHBOARD ───────────────────────────────────
+  // ════════════════════════════════════════════════
+
+  var dashView      = 'colaborador'; // 'colaborador' | 'posto'
+  var dashPeriod    = 'todos';       // 'todos' | 'mes' | 'ano'
+  var dashNomeFiltro = '';           // nome específico ou '' para todos
+
+  // Paleta de cores para as barras
+  var PALETTE = [
+    '#26de81','#45aaf2','#f7b731','#fd9644','#fc5c65',
+    '#a55eea','#2bcbba','#eb3b5a','#4b6fa5','#f9ca24',
+    '#6ab04c','#e55039','#1289a7','#c44569','#f0932b'
+  ];
+
+  function getFTs() {
+    try { return JSON.parse(localStorage.getItem('ft_registros') || '[]'); } catch(e) { return []; }
+  }
+
+  // Popula o select de busca do dashboard com colaboradores ou postos
+  function fillDashSelect() {
+    var sel   = document.getElementById('dashSelectFiltro');
+    var label = document.getElementById('dash-select-label');
+    if (!sel) return;
+
+    var opcoes = dashView === 'posto'
+      ? sortAlpha(postos).map(function(p) { return p.nome; })
+      : sortAlpha(colaboradores).map(function(c) { return c.nome; });
+
+    if (label) label.textContent = dashView === 'posto'
+      ? '📍 Filtrar por posto'
+      : '👤 Filtrar por colaborador';
+
+    sel.innerHTML = '<option value="">— Todos —</option>';
+    opcoes.forEach(function(nome) {
+      var opt = document.createElement('option');
+      opt.value = nome;
+      opt.textContent = nome;
+      if (nome === dashNomeFiltro) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function filterByPeriod(fts) {
+    if (dashPeriod === 'todos') return fts;
+    var now = new Date();
+    return fts.filter(function(ft) {
+      var d = new Date(ft.dataHora || ft.criadoEm);
+      if (dashPeriod === 'mes') return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+      if (dashPeriod === 'ano') return d.getFullYear() === now.getFullYear();
+      return true;
+    });
+  }
+
+  function filterByNome(fts) {
+    if (!dashNomeFiltro) return fts;
+    return fts.filter(function(ft) {
+      var key = dashView === 'posto' ? ft.posto : ft.substituto;
+      return key === dashNomeFiltro;
+    });
+  }
+
+  function buildDataset(fts) {
+    var map = {};
+    fts.forEach(function(ft) {
+      var key = dashView === 'posto' ? (ft.posto || '—') : (ft.substituto || '—');
+      if (!key) key = '—';
+      if (!map[key]) map[key] = { qtd: 0, valor: 0 };
+      map[key].qtd++;
+      map[key].valor += ft.valor || 0;
+    });
+    var entries = Object.keys(map).map(function(k) {
+      return { nome: k, qtd: map[k].qtd, valor: map[k].valor };
+    });
+    entries.sort(function(a,b) { return b.qtd - a.qtd; });
+    return entries;
+  }
+
+  // Desenha gráfico de barras horizontais no canvas
+  function drawBarChart(canvasId, data, valueKey, colorFn, formatFn) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var wrap = canvas.parentElement;
+    var W = wrap.clientWidth;
+    var H = 220;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+
+    if (!data.length) {
+      ctx.fillStyle = '#8b97b0';
+      ctx.font = '13px Nunito, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Nenhum registro encontrado', W/2, H/2);
+      return;
+    }
+
+    var maxItems = Math.min(data.length, 10);
+    var items    = data.slice(0, maxItems);
+    var maxVal   = Math.max.apply(null, items.map(function(d) { return d[valueKey]; }));
+    if (maxVal === 0) maxVal = 1;
+
+    var labelW  = Math.min(120, W * 0.32);
+    var barAreaW = W - labelW - 70;
+    var barH    = Math.min(22, Math.floor((H - 20) / maxItems) - 6);
+    var gap     = Math.floor((H - 20) / maxItems);
+
+    items.forEach(function(item, i) {
+      var y      = 10 + i * gap + (gap - barH) / 2;
+      var barW   = (item[valueKey] / maxVal) * barAreaW;
+      var color  = colorFn(i);
+
+      // Label
+      ctx.fillStyle = '#8b97b0';
+      ctx.font = '11px Nunito, sans-serif';
+      ctx.textAlign = 'right';
+      var shortName = item.nome.length > 14 ? item.nome.slice(0,13) + '…' : item.nome;
+      ctx.fillText(shortName, labelW - 6, y + barH * 0.72);
+
+      // Trilha fundo
+      ctx.fillStyle = 'rgba(42,51,71,0.6)';
+      ctx.beginPath();
+      ctx.roundRect(labelW, y, barAreaW, barH, 4);
+      ctx.fill();
+
+      // Barra colorida
+      if (barW > 0) {
+        ctx.fillStyle = color;
+        ctx.globalAlpha = 0.88;
+        ctx.beginPath();
+        ctx.roundRect(labelW, y, barW, barH, 4);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      // Valor à direita
+      ctx.fillStyle = '#e8edf5';
+      ctx.textAlign = 'left';
+      ctx.font = 'bold 11px Exo 2, sans-serif';
+      ctx.fillText(formatFn(item[valueKey]), labelW + barAreaW + 6, y + barH * 0.72);
+    });
+  }
+
+  function renderLegend(legendId, data, colorFn, labelKey) {
+    var el = document.getElementById(legendId);
+    if (!el) return;
+    var items = data.slice(0, 10);
+    el.innerHTML = items.map(function(d, i) {
+      return '<div class="legend-item">' +
+        '<div class="legend-dot" style="background:' + colorFn(i) + '"></div>' +
+        '<span>' + escHtml(d[labelKey || 'nome']) + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  function renderRanking(data) {
+    var el = document.getElementById('rankingTable');
+    if (!el) return;
+    if (!data.length) {
+      el.innerHTML = '<div class="dash-empty">Nenhum dado para exibir.</div>';
+      return;
+    }
+    var maxQtd = data[0].qtd || 1;
+    el.innerHTML = data.slice(0, 10).map(function(item, i) {
+      var posClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+      var posLabel = i === 0 ? '&#x1F947;' : i === 1 ? '&#x1F948;' : i === 2 ? '&#x1F949;' : (i+1) + 'º';
+      var pct = Math.round((item.qtd / maxQtd) * 100);
+      return '<div class="rank-row">' +
+        '<div class="rank-pos ' + posClass + '">' + posLabel + '</div>' +
+        '<div style="flex:1">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between">' +
+            '<span class="rank-name">' + escHtml(item.nome) + '</span>' +
+            '<div class="rank-badges">' +
+              '<span class="rank-badge rank-badge-qtd">' + item.qtd + ' FT' + (item.qtd !== 1 ? 's' : '') + '</span>' +
+              '<span class="rank-badge rank-badge-valor">R$ ' + item.valor.toFixed(2).replace('.',',') + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="rank-bar-wrap"><div class="rank-bar" style="width:' + pct + '%"></div></div>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function updateKPIs(fts) {
+    var total = fts.length;
+    var valorTotal = fts.reduce(function(s, ft) { return s + (ft.valor || 0); }, 0);
+    var media = total ? valorTotal / total : 0;
+    document.getElementById('kpi-total-fts').textContent   = total;
+    document.getElementById('kpi-total-valor').textContent = 'R$ ' + valorTotal.toFixed(2).replace('.',',');
+    document.getElementById('kpi-media-valor').textContent = 'R$ ' + media.toFixed(2).replace('.',',');
+  }
+
+  function updateDashSubtitles() {
+    var label = dashView === 'posto' ? 'por posto' : 'por colaborador';
+    document.getElementById('dash-sub-rank').textContent = 'por FTs realizadas · ' + label;
+  }
+
+  // ── Subtítulo dos botões de exportação do dashboard ──
+  function updateDashExportSubs() {
+    var viewLabel   = dashView === 'posto' ? 'Postos' : 'Colaboradores';
+    var nomeLabel   = dashNomeFiltro ? dashNomeFiltro : 'Todos';
+    var periodoLabel = dashPeriod === 'mes' ? 'Este mês' : dashPeriod === 'ano' ? 'Este ano' : 'Todos os períodos';
+    var sub = nomeLabel + ' · ' + periodoLabel;
+    var subEl1 = document.getElementById('dash-exp-sub-pdf');
+    var subEl2 = document.getElementById('dash-exp-sub-excel');
+    if (subEl1) subEl1.textContent = sub;
+    if (subEl2) subEl2.textContent = sub;
+  }
+
+  // ── Helper: dados filtrados do dashboard ────────────
+  function getDashData() {
+    return buildDataset(filterByNome(filterByPeriod(getFTs())));
+  }
+
+  // ── Helper: nova página com fundo escuro ─────────────
+  function pdfNovaPage(doc, W) {
+    doc.addPage();
+    doc.setFillColor(13, 17, 23);
+    doc.rect(0, 0, W, 297, 'F');
+    return 20;
+  }
+
+  // ── Helper: cabeçalho PDF reutilizável ───────────────
+  function pdfCabecalho(doc, W, titulo, subtitulo, badges) {
+    doc.setFillColor(13, 17, 23);
+    doc.rect(0, 0, W, 297, 'F');
+    doc.setFillColor(26, 33, 51);
+    doc.rect(0, 0, W, 40, 'F');
+    doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.8);
+    doc.line(0, 40, W, 40);
+
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(247, 183, 49);
+    doc.text(titulo, W / 2, 13, { align: 'center' });
+    doc.setFontSize(8.5); doc.setTextColor(139, 151, 176); doc.setFont('helvetica', 'normal');
+    doc.text(subtitulo, W / 2, 20, { align: 'center' });
+
+    var bw = Math.floor((W - 30) / badges.length);
+    var bx = 15; var by = 29;
+    badges.forEach(function(b) {
+      doc.setFillColor(30, 40, 60);
+      doc.roundedRect(bx, by - 5, bw - 4, 12, 2, 2, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(6); doc.setTextColor(139, 151, 176);
+      doc.text(b.label, bx + (bw - 4) / 2, by - 0.5, { align: 'center' });
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(232, 237, 245);
+      var val = b.value.length > 22 ? b.value.slice(0, 21) + '…' : b.value;
+      doc.text(val, bx + (bw - 4) / 2, by + 5, { align: 'center' });
+      bx += bw;
+    });
+    return 50;
+  }
+
+  // ── Helper: bloco KPI ─────────────────────────────────
+  function pdfKpis(doc, y, totalFTs, totalValor, media) {
+    var kpis = [
+      { label: 'TOTAL DE FTs', value: String(totalFTs),                                    color: [38, 222, 129] },
+      { label: 'VALOR TOTAL',  value: 'R$ ' + totalValor.toFixed(2).replace('.', ','),     color: [247, 183, 49] },
+      { label: 'MÉDIA POR FT', value: 'R$ ' + media.toFixed(2).replace('.', ','),          color: [69, 170, 242] }
+    ];
+    var kx = 15;
+    kpis.forEach(function(k) {
+      doc.setFillColor(28, 34, 48);
+      doc.roundedRect(kx, y, 58, 22, 3, 3, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
+      doc.setTextColor(k.color[0], k.color[1], k.color[2]);
+      doc.text(k.value, kx + 29, y + 12, { align: 'center' });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setTextColor(139, 151, 176);
+      doc.text(k.label, kx + 29, y + 18, { align: 'center' });
+      kx += 62;
+    });
+    return y + 30;
+  }
+
+  // ── Exportar PDF do dashboard ────────────────────────
+  function exportarDashPDF() {
+    var jsPDF = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDF) { showToast('❌ Biblioteca PDF não carregada.', 'error'); return; }
+
+    var ftsFiltradas = filterByNome(filterByPeriod(getFTs()));
+    if (!ftsFiltradas.length) { showToast('⚠️ Nenhum dado para exportar.', 'error'); return; }
+
+    var modoDetalhe  = !!(dashNomeFiltro && dashView === 'colaborador');
+    var viewLabel    = dashView === 'posto' ? 'Posto' : 'Colaborador';
+    var viewLabelPl  = dashView === 'posto' ? 'Postos' : 'Colaboradores';
+    var nomeLabel    = dashNomeFiltro || 'Todos';
+    var periodoLabel = dashPeriod === 'mes' ? 'Este Mês' : dashPeriod === 'ano' ? 'Este Ano' : 'Todos os Períodos';
+    var dataHoje     = new Date().toLocaleDateString('pt-BR');
+    var dataHojeArq  = dataHoje.replace(/\//g, '-');
+    var W = 210;
+
+    var doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+    var badges = [
+      { label: 'VISÃO',    value: viewLabelPl  },
+      { label: 'FILTRO',   value: nomeLabel     },
+      { label: 'PERÍODO',  value: periodoLabel  }
+    ];
+
+    var y = pdfCabecalho(doc, W,
+      'Relatório de Folgas Trabalhadas',
+      'Grupo M.S Segurança e Serviços  |  Gerado em: ' + dataHoje,
+      badges
+    );
+
+    var totalFTs   = ftsFiltradas.length;
+    var totalValor = ftsFiltradas.reduce(function(s, ft) { return s + (ft.valor || 0); }, 0);
+    var media      = totalFTs ? totalValor / totalFTs : 0;
+
+    y = pdfKpis(doc, y, totalFTs, totalValor, media);
+
+    // ── MODO DETALHE: colaborador específico → lista de FTs com posto e motivo ──
+    if (modoDetalhe) {
+      // Cabeçalho nome do colaborador
+      doc.setFillColor(22, 50, 34);
+      doc.rect(10, y, 190, 10, 'F');
+      doc.setDrawColor(38, 222, 129); doc.setLineWidth(0.4);
+      doc.line(10, y + 10, 200, y + 10);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(38, 222, 129);
+      doc.text('👤 ' + dashNomeFiltro, 15, y + 6.5);
+      y += 14;
+
+      // Cabeçalho colunas
+      doc.setFillColor(22, 34, 52);
+      doc.rect(10, y, 190, 9, 'F');
+      doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.3);
+      doc.line(10, y + 9, 200, y + 9);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(247, 183, 49);
+      doc.text('#',         14,  y + 6);
+      doc.text('Data / Hora', 22, y + 6);
+      doc.text('Posto',      80, y + 6);
+      doc.text('Motivo',    138, y + 6);
+      doc.text('Valor',     197, y + 6, { align: 'right' });
+      y += 11;
+
+      // Ordena por data
+      var ftsOrdenadas = ftsFiltradas.slice().sort(function(a, b) {
+        return new Date(a.dataHora || a.criadoEm) - new Date(b.dataHora || b.criadoEm);
+      });
+
+      ftsOrdenadas.forEach(function(ft, i) {
+        if (y > 272) { y = pdfNovaPage(doc, W); }
+
+        var even = i % 2 === 0;
+        doc.setFillColor(even ? 28 : 22, even ? 34 : 27, even ? 48 : 38);
+        doc.rect(10, y - 2, 190, 9, 'F');
+
+        var dtStr = ft.dataHora
+          ? new Date(ft.dataHora).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+          : '—';
+        var postoStr  = (ft.posto  || '—').length > 22 ? (ft.posto  || '—').slice(0,21)+'…' : (ft.posto  || '—');
+        var motivoStr = (ft.motivo || '—').length > 20 ? (ft.motivo || '—').slice(0,19)+'…' : (ft.motivo || '—');
+
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(139, 151, 176);
+        doc.text(String(i + 1).padStart(2, '0'), 14, y + 4.5);
+
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(232, 237, 245);
+        doc.text(dtStr,     22,  y + 4.5);
+
+        doc.setTextColor(69, 170, 242);
+        doc.text(postoStr,  80,  y + 4.5);
+
+        doc.setTextColor(253, 150, 68);
+        doc.text(motivoStr, 138, y + 4.5);
+
+        doc.setFont('helvetica', 'bold'); doc.setTextColor(247, 183, 49);
+        doc.text('R$ ' + (ft.valor || 0).toFixed(2).replace('.', ','), 197, y + 4.5, { align: 'right' });
+
+        y += 9;
+      });
+
+      // Total
+      y += 4;
+      doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.4);
+      doc.line(10, y, 200, y);
+      y += 6;
+      doc.setFillColor(34, 40, 28);
+      doc.rect(10, y - 3, 190, 10, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(247, 183, 49);
+      doc.text('TOTAL A RECEBER', 22, y + 3.5);
+      doc.setTextColor(38, 222, 129);
+      doc.text(String(totalFTs) + ' FT' + (totalFTs !== 1 ? 's' : ''), 155, y + 3.5, { align: 'right' });
+      doc.setTextColor(247, 183, 49);
+      doc.text('R$ ' + totalValor.toFixed(2).replace('.', ','), 197, y + 3.5, { align: 'right' });
+
+    } else {
+      // ── MODO RESUMO: todos → tabela agrupada ──
+      var data = buildDataset(ftsFiltradas);
+
+      doc.setFillColor(22, 34, 52);
+      doc.rect(10, y, 190, 10, 'F');
+      doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.3);
+      doc.line(10, y + 10, 200, y + 10);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(247, 183, 49);
+      doc.text('#',              15,  y + 6.5);
+      doc.text(viewLabel,        25,  y + 6.5);
+      doc.text('FTs',           148,  y + 6.5, { align: 'right' });
+      doc.text('Valor a Receber', 197, y + 6.5, { align: 'right' });
+      y += 12;
+
+      var totalValorGeral = 0;
+      data.forEach(function(item, i) {
+        if (y > 272) { y = pdfNovaPage(doc, W); }
+        var even = i % 2 === 0;
+        doc.setFillColor(even ? 28 : 22, even ? 34 : 27, even ? 48 : 38);
+        doc.rect(10, y - 2, 190, 9, 'F');
+
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(139, 151, 176);
+        doc.text(String(i + 1).padStart(2, '0'), 15, y + 4.5);
+
+        doc.setTextColor(232, 237, 245); doc.setFont('helvetica', 'normal');
+        var nomeShort = item.nome.length > 45 ? item.nome.slice(0, 44) + '…' : item.nome;
+        doc.text(nomeShort, 25, y + 4.5);
+
+        doc.setTextColor(38, 222, 129); doc.setFont('helvetica', 'bold');
+        doc.text(item.qtd + ' FT' + (item.qtd !== 1 ? 's' : ''), 148, y + 4.5, { align: 'right' });
+
+        doc.setTextColor(247, 183, 49);
+        doc.text('R$ ' + item.valor.toFixed(2).replace('.', ','), 197, y + 4.5, { align: 'right' });
+
+        totalValorGeral += item.valor;
+        y += 9;
+      });
+
+      y += 4;
+      doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.4);
+      doc.line(10, y, 200, y);
+      y += 6;
+      doc.setFillColor(34, 40, 28);
+      doc.rect(10, y - 3, 190, 10, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(247, 183, 49);
+      doc.text('TOTAL GERAL', 25, y + 3.5);
+      doc.setTextColor(38, 222, 129);
+      doc.text(String(totalFTs) + ' FTs', 148, y + 3.5, { align: 'right' });
+      doc.setTextColor(247, 183, 49);
+      doc.text('R$ ' + totalValorGeral.toFixed(2).replace('.', ','), 197, y + 3.5, { align: 'right' });
+    }
+
+    // Rodapé em todas as páginas
+    var totalPages = doc.internal.getNumberOfPages();
+    for (var pg = 1; pg <= totalPages; pg++) {
+      doc.setPage(pg);
+      doc.setDrawColor(42, 51, 71); doc.setLineWidth(0.3);
+      doc.line(10, 285, 200, 285);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(139, 151, 176);
+      doc.text('Grupo M.S Segurança e Serviços  |  Sistema de Folga Trabalhada', W / 2, 290, { align: 'center' });
+      doc.text('Pág. ' + pg + ' / ' + totalPages, 195, 290, { align: 'right' });
+    }
+
+    var nomeFiltroArq = dashNomeFiltro ? '_' + dashNomeFiltro.replace(/\s+/g, '_') : '';
+    doc.save('FT_Dashboard_' + viewLabelPl + nomeFiltroArq + '_' + dataHojeArq + '.pdf');
+    showToast('📄 PDF gerado com sucesso!', 'success');
+  }
+
+  // ── Exportar Excel do dashboard ──────────────────────
+  function exportarDashExcel() {
+    var XLSX = window.XLSX;
+    if (!XLSX) { showToast('❌ Biblioteca Excel não carregada.', 'error'); return; }
+
+    var ftsFiltradas = filterByNome(filterByPeriod(getFTs()));
+    if (!ftsFiltradas.length) { showToast('⚠️ Nenhum dado para exportar.', 'error'); return; }
+
+    var modoDetalhe  = !!(dashNomeFiltro && dashView === 'colaborador');
+    var viewLabelPl  = dashView === 'posto' ? 'Postos' : 'Colaboradores';
+    var viewLabel    = dashView === 'posto' ? 'Posto' : 'Colaborador';
+    var nomeLabel    = dashNomeFiltro || 'Todos';
+    var periodoLabel = dashPeriod === 'mes' ? 'Este Mês' : dashPeriod === 'ano' ? 'Este Ano' : 'Todos os Períodos';
+    var dataHoje     = new Date().toLocaleDateString('pt-BR');
+    var dataHojeArq  = dataHoje.replace(/\//g, '-');
+
+    var totalFTs   = ftsFiltradas.length;
+    var totalValor = ftsFiltradas.reduce(function(s, ft) { return s + (ft.valor || 0); }, 0);
+    var media      = totalFTs ? totalValor / totalFTs : 0;
+
+    var rows = [
+      ['RELATÓRIO DE FOLGAS TRABALHADAS — Grupo M.S Segurança e Serviços'],
+      ['Gerado em: ' + dataHoje],
+      [],
+      ['Visão:', viewLabelPl, 'Filtro:', nomeLabel, 'Período:', periodoLabel],
+      [],
+      ['KPIs'],
+      ['Total de FTs', totalFTs],
+      ['Valor Total (R$)', totalValor],
+      ['Média por FT (R$)', media],
+      []
+    ];
+
+    var merges = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }
+    ];
+    var cols;
+
+    if (modoDetalhe) {
+      // Cabeçalho detalhado
+      rows.push(['Colaborador: ' + dashNomeFiltro]);
+      rows.push([]);
+      rows.push(['#', 'Data / Hora', 'Posto', 'Motivo', 'Qtd. FTs', 'Valor a Receber (R$)']);
+
+      var ftsOrdenadas = ftsFiltradas.slice().sort(function(a, b) {
+        return new Date(a.dataHora || a.criadoEm) - new Date(b.dataHora || b.criadoEm);
+      });
+
+      ftsOrdenadas.forEach(function(ft, i) {
+        var dtStr = ft.dataHora
+          ? new Date(ft.dataHora).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+          : '—';
+        rows.push([i + 1, dtStr, ft.posto || '—', ft.motivo || '—', 1, ft.valor || 0]);
+      });
+
+      rows.push([]);
+      rows.push(['', '', '', 'TOTAL A RECEBER', totalFTs, totalValor]);
+
+      cols = [{ wch: 4 }, { wch: 20 }, { wch: 28 }, { wch: 24 }, { wch: 10 }, { wch: 22 }];
+
+    } else {
+      // Tabela resumida
+      rows.push(['#', viewLabel, 'Qtd. FTs', 'Valor a Receber (R$)']);
+
+      var data = buildDataset(ftsFiltradas);
+      data.forEach(function(item, i) {
+        rows.push([i + 1, item.nome, item.qtd, item.valor]);
+      });
+
+      rows.push([]);
+      rows.push(['', 'TOTAL GERAL', totalFTs, totalValor]);
+
+      cols = [{ wch: 4 }, { wch: 36 }, { wch: 12 }, { wch: 22 }];
+    }
+
+    var ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']   = cols;
+    ws['!merges'] = merges;
+
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, modoDetalhe ? dashNomeFiltro.slice(0, 31) : viewLabelPl);
+
+    var nomeFiltroArq = dashNomeFiltro ? '_' + dashNomeFiltro.replace(/\s+/g, '_') : '';
+    XLSX.writeFile(wb, 'FT_Dashboard_' + viewLabelPl + nomeFiltroArq + '_' + dataHojeArq + '.xlsx');
+    showToast('📊 Excel gerado com sucesso!', 'success');
+  }
+
+  function renderDashboard() {
+    var fts  = filterByNome(filterByPeriod(getFTs()));
+    var data = buildDataset(fts);
+    updateKPIs(fts);
+    updateDashSubtitles();
+    updateDashExportSubs();
+    renderRanking(data);
+  }
+
+  // ── Inicialização ────────────────────────────────
+  function init() {
+    setDefaultDateTime();
+
+    // Popula selects com dados do localStorage
+    fillSelect('substituto',  colaboradores);
+    fillSelect('quemFaltou',  colaboradores);
+    fillSelect('substituido', colaboradores);
+    fillSelect('posto',       postos);
+
+    // Renderiza listas
+    renderColaboradoresList();
+    renderPostosList();
+
+    handleMotivoChange();
+
+    // Modal de duplicata
+    document.getElementById('btnModalOk').addEventListener('click', function() {
+      document.getElementById('modalDuplicata').classList.remove('show');
+    });
+    document.getElementById('modalDuplicata').addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('show');
+    });
+
+    // Formulário FT
+    document.getElementById('motivo').addEventListener('change', handleMotivoChange);
+    document.getElementById('ftForm').addEventListener('submit', submitForm);
+    document.getElementById('btnLimpar').addEventListener('click', function() {
+      document.getElementById('ftForm').reset();
+      setDefaultDateTime();
+      handleMotivoChange();
+    });
+
+    // Abas
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { switchTab(btn.dataset.tab); });
+    });
+
+    // Cadastro colaborador
+    document.getElementById('btnAddColaborador').addEventListener('click', addColaborador);
+    document.getElementById('inputColaborador').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); addColaborador(); }
+    });
+
+    // Cadastro posto
+    document.getElementById('btnAddPosto').addEventListener('click', addPosto);
+    document.getElementById('inputPosto').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); addPosto(); }
+    });
+
+    // Filtros relatório
+    document.querySelectorAll('.btn-filtro').forEach(function(btn) {
+      btn.addEventListener('click', function() { setFiltroRelatorio(btn.dataset.filtro); });
+    });
+
+    // Relatórios
+    document.getElementById('btnRelatorioPDF').addEventListener('click', exportarCadastrosPDF);
+    document.getElementById('btnRelatorioExcel').addEventListener('click', exportarCadastrosExcel);
+
+    // Exportação do dashboard
+    document.getElementById('btnDashPDF').addEventListener('click', exportarDashPDF);
+    document.getElementById('btnDashExcel').addEventListener('click', exportarDashExcel);
+
+    // Busca do histórico
+    var histSearchEl = document.getElementById('histSearch');
+    if (histSearchEl) {
+      histSearchEl.addEventListener('input', function() {
+        histQuery = histSearchEl.value;
+        renderHistorico();
+      });
+    }
+
+    // Delegação p/ botões de remoção nas listas
+    document.getElementById('listaColaboradores').addEventListener('click', onListClick);
+    document.getElementById('listaPostos').addEventListener('click', onListClick);
+
+    // Delegação p/ botões editar/excluir no histórico
+    var histListEl = document.getElementById('histList');
+    if (histListEl) histListEl.addEventListener('click', onHistListClick);
+
+    // Modal de edição de FT
+    document.getElementById('btnEditCancel').addEventListener('click', function() {
+      document.getElementById('modalEditFT').classList.remove('show');
+      editingFTId = null;
+    });
+    document.getElementById('modalEditFT').addEventListener('click', function(e) {
+      if (e.target === this) { this.classList.remove('show'); editingFTId = null; }
+    });
+    document.getElementById('btnEditSave').addEventListener('click', salvarEditFT);
+    document.getElementById('edit-motivo').addEventListener('change', syncEditMotivoBlock);
+
+    // Select de busca do dashboard (colaborador / posto específico)
+    var dashSel = document.getElementById('dashSelectFiltro');
+    if (dashSel) {
+      dashSel.addEventListener('change', function() {
+        dashNomeFiltro = dashSel.value;
+        renderDashboard();
+      });
+    }
+
+    // Pills de visão do dashboard (colaborador / posto)
+    document.querySelectorAll('.dash-pill[data-view]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        dashView = btn.dataset.view;
+        dashNomeFiltro = ''; // reseta filtro ao trocar a view
+        document.querySelectorAll('.dash-pill[data-view]').forEach(function(b) {
+          b.classList.toggle('active', b.dataset.view === dashView);
+        });
+        fillDashSelect();
+        renderDashboard();
+      });
+    });
+
+    // Pills de período do dashboard
+    document.querySelectorAll('.dash-pill[data-period]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        dashPeriod = btn.dataset.period;
+        document.querySelectorAll('.dash-pill[data-period]').forEach(function(b) {
+          b.classList.toggle('active', b.dataset.period === dashPeriod);
+        });
+        renderDashboard();
+      });
+    });
+
+    // Re-renderiza ao redimensionar (canvas precisa ser redesenhado)
+    window.addEventListener('resize', function() {
+      var dash = document.getElementById('tab-dashboard');
+      if (dash && !dash.classList.contains('hidden')) renderDashboard();
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  // ── Expõe showToast para o módulo de sync ──────
+  window.showToast = showToast;
+
+  // ── Callback chamado após sincronização ─────────
+  window.onSyncComplete = function() {
+    // Re-renderiza histórico e dashboard com dados atualizados
+    var histTab = document.getElementById('tab-historico');
+    if (histTab && !histTab.classList.contains('hidden')) renderHistorico();
+    var dashTab = document.getElementById('tab-dashboard');
+    if (dashTab && !dashTab.classList.contains('hidden')) renderDashboard();
+    showToast('✅ Dados sincronizados com sucesso!', 'success');
+  };
+
+}());
+</script>
+
+<!-- ════════════════════════════════════════════════════════
+     MÓDULO FIREBASE SYNC — Cole suas credenciais abaixo
+     ════════════════════════════════════════════════════════ -->
+<script>
+/**
+ * firebase-sync.js
+ * ─────────────────────────────────────────────────────────────
+ * Conecta o SyncEngine ao Firebase Firestore.
+ * Inclua este script APÓS o index.html terminar de carregar,
+ * ou adicione-o como <script src="firebase-sync.js"></script>
+ * logo antes de </body> no index.html.
+ *
+ * Pré-requisitos:
+ *   1. Criar projeto no Firebase Console (https://console.firebase.google.com)
+ *   2. Ativar Firestore Database (modo produção ou teste)
+ *   3. Copiar as credenciais do projeto para as variáveis abaixo
+ * ─────────────────────────────────────────────────────────────
+ */
+
+// ── 1. SUAS CREDENCIAIS FIREBASE ──────────────────────────────
+//      Substitua pelos valores do seu projeto
+var FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyA6OzNUzlHVJaG3CsnQ3m-cfcuOkf6Ve-Q",
+  authDomain:        "nova-folga-trabalhada.firebaseapp.com",
+  projectId:         "nova-folga-trabalhada",
+  storageBucket:     "nova-folga-trabalhada.firebasestorage.app",
+  messagingSenderId: "187145497152",
+  appId:             "1:187145497152:web:8f943193dffdadd2340da5"
+};
+
+// ── 2. ID DO DOCUMENTO ÚNICO NO FIRESTORE ────────────────────
+//      Todos os dados ficam em: /folga_trabalhada/dados
+var FIRESTORE_COLLECTION = 'folga_trabalhada';
+var FIRESTORE_DOC_ID     = 'dados';
+
+// ─────────────────────────────────────────────────────────────
+
+(function () {
+  'use strict';
+
+  // Carrega o SDK Firebase via CDN
+  function loadScript(src, cb) {
+    var s = document.createElement('script');
+    s.src = src; s.onload = cb;
+    document.head.appendChild(s);
+  }
+
+  function initFirebase() {
+    // Inicializa app Firebase (evita re-inicialização)
+    var app;
+    try {
+      app = firebase.app();
+    } catch (e) {
+      app = firebase.initializeApp(FIREBASE_CONFIG);
+    }
+
+    var db = firebase.firestore();
+
+    // ── Handler remoto registrado no SyncEngine ──────────────
+    // Recebe cada entrada da fila e grava no Firestore
+    if (window.SyncEngine) {
+      SyncEngine.setRemote(function (entry) {
+        // entry = { qid, op, store, payload, ts }
+        // Estratégia: sobrescreve o campo correspondente no documento único
+        var update = {};
+        update[entry.store] = entry.payload;
+
+        return db
+          .collection(FIRESTORE_COLLECTION)
+          .doc(FIRESTORE_DOC_ID)
+          .set(update, { merge: true })
+          .then(function () { return true; })
+          .catch(function (err) {
+            console.warn('[FirebaseSync] Falha ao sincronizar:', err);
+            return false; // mantém na fila para tentar depois
+          });
+      });
+    }
+
+    // ── Listener em tempo real (recebe mudanças de outros dispositivos) ──
+    db.collection(FIRESTORE_COLLECTION)
+      .doc(FIRESTORE_DOC_ID)
+      .onSnapshot(function (doc) {
+        if (!doc.exists) return;
+        var data = doc.data();
+
+        // Atualiza localStorage e IndexedDB com dados remotos
+        ['ft_registros', 'ft_colaboradores', 'ft_postos'].forEach(function (key) {
+          if (data[key] !== undefined) {
+            try { localStorage.setItem(key, JSON.stringify(data[key])); } catch (e) {}
+            if (window.FT_Store) FT_Store.set(key, data[key]);
+          }
+        });
+
+        // Notifica a UI
+        if (typeof window.onSyncComplete === 'function') {
+          window.onSyncComplete();
+        }
+      }, function (err) {
+        console.warn('[FirebaseSync] Listener error:', err);
+      });
+
+    console.log('[FirebaseSync] ✅ Conectado ao Firestore:', FIREBASE_CONFIG.projectId);
+  }
+
+  // Carrega SDKs do Firebase em sequência e inicializa
+  loadScript('https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js', function () {
+    loadScript('https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js', function () {
+      initFirebase();
+    });
+  });
+}());
+
+</script>
+
+</body>
+</html>
