@@ -1628,7 +1628,7 @@
         self.updateStatus(self._online ? 'online' : 'offline');
         self.updateBadge();
         // Notifica a UI que os dados podem ter mudado
-        if (typeof window.onSyncComplete === 'function') window.onSyncComplete();
+        if (typeof window.onSyncComplete === 'function') window.onSyncComplete(false);
       }).catch(function() {
         self._syncing = false;
         self.updateStatus(self._online ? 'online' : 'offline');
@@ -1828,6 +1828,7 @@
       document.getElementById('modalDuplicata').classList.add('show');
       return;
     }
+    var btn = document.getElementById('btnRegistrar');
     btn.disabled = true;
     btn.innerHTML = '<span class="spin">&#x27F3;</span> Registrando…';
 
@@ -1846,8 +1847,10 @@
       });
       localStorage.setItem('ft_registros', JSON.stringify(fts));
       if (window.FT_Store)     FT_Store.set('ft_registros', fts);
-      if (window.FT_SyncQueue) FT_SyncQueue.enqueue('set', 'ft_registros', fts);
-    } catch(e) {}
+      if (window.FT_SyncQueue) FT_SyncQueue.enqueue('set', 'ft_registros', fts).then(function() {
+        if (window.SyncEngine) SyncEngine.flush();
+      });
+    } catch(e) { console.error('[FT] Erro ao salvar:', e); }
 
     setTimeout(function() {
       showToast('✅ FT registrada com sucesso!', 'success');
@@ -3070,13 +3073,14 @@
   window.showToast = showToast;
 
   // ── Callback chamado após sincronização ─────────
-  window.onSyncComplete = function() {
+  window.onSyncComplete = function(fromSnapshot) {
     // Re-renderiza histórico e dashboard com dados atualizados
     var histTab = document.getElementById('tab-historico');
     if (histTab && !histTab.classList.contains('hidden')) renderHistorico();
     var dashTab = document.getElementById('tab-dashboard');
     if (dashTab && !dashTab.classList.contains('hidden')) renderDashboard();
-    showToast('✅ Dados sincronizados com sucesso!', 'success');
+    // Só mostra toast quando vier de flush manual (não de snapshot remoto contínuo)
+    if (!fromSnapshot) showToast('☁️ Dados sincronizados com Firebase!', 'success');
   };
 
 }());
@@ -3162,9 +3166,9 @@ var FIRESTORE_DOC_ID     = 'dados';
           }
         });
 
-        // Notifica a UI
+        // Notifica a UI (fromSnapshot=true para não exibir toast)
         if (typeof window.onSyncComplete === 'function') {
-          window.onSyncComplete();
+          window.onSyncComplete(true);
         }
       }, function (err) {
         console.warn('[FirebaseSync] Listener error:', err);
