@@ -960,8 +960,12 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 1rem;
+    font-size: 1.05rem;
     pointer-events: none;
+    z-index: 2;
+    line-height: 1;
+    display: flex;
+    align-items: center;
   }
   .hist-search-input {
     width: 100%;
@@ -971,12 +975,13 @@
     color: var(--text);
     font-family: 'Nunito', sans-serif;
     font-size: .92rem;
-    padding: 12px 14px 12px 40px;
+    padding: 12px 14px 12px 44px;
     outline: none;
     transition: border-color .2s, box-shadow .2s;
+    display: block;
   }
   .hist-search-input:focus { border-color: var(--accent1); box-shadow: 0 0 0 3px rgba(247,183,49,.18); }
-  .hist-search-input::placeholder { color: var(--muted); }
+  .hist-search-input::placeholder { color: var(--muted); opacity: 1; padding-left: 0; }
 
   .hist-count {
     font-family: 'Exo 2', sans-serif;
@@ -2948,33 +2953,46 @@
     var titulos = { todos: 'RELATORIO DE CADASTROS', postos: 'RELATORIO DE POSTOS', colaboradores: 'RELATORIO DE COLABORADORES' };
 
     docPdf.setFillColor(13, 17, 23); docPdf.rect(0, 0, 210, 297, 'F');
-    docPdf.setFillColor(28, 34, 48); docPdf.rect(0, 0, 210, 42, 'F');
-    docPdf.setDrawColor(247, 183, 49); docPdf.setLineWidth(0.8); docPdf.line(0, 42, 210, 42);
-    // Logo PJ — hexágono esquerdo (coordenadas absolutas mm)
-    docPdf.setFillColor(13, 56, 120); docPdf.setDrawColor(0, 200, 248); docPdf.setLineWidth(0.7);
-    docPdf.triangle(10,6, 18,2, 26,6, 'FD');
-    docPdf.triangle(10,6, 26,6, 26,16, 'FD');
-    docPdf.triangle(10,6, 26,16, 18,20, 'FD');
-    docPdf.triangle(10,6, 18,20, 10,16, 'FD');
-    docPdf.setDrawColor(0, 200, 248); docPdf.setLineWidth(0.7);
-    docPdf.lines([[8,0],[4,4],[0,8],[-4,4],[-8,0],[-4,-4],[0,-8],[4,-4],[8,0]], 10, 6, [1,1], 'S');
-    docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(5.5); docPdf.setTextColor(255, 255, 255);
-    docPdf.text('PJ', 18, 13, { align: 'center' });
-    docPdf.setTextColor(0, 200, 248);
-    docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(7.5);
-    docPdf.text('PJ TECNOLOGIA E SISTEMAS', 32, 10);
-    docPdf.setFont('helvetica', 'normal'); docPdf.setFontSize(5.5); docPdf.setTextColor(0, 180, 220);
-    docPdf.text('Inovacao que conecta. Tecnologia que transforma.', 32, 16);
+    docPdf.setFillColor(28, 34, 48); docPdf.rect(0, 0, 210, 46, 'F');
+    docPdf.setDrawColor(247, 183, 49); docPdf.setLineWidth(0.8); docPdf.line(0, 46, 210, 46);
+    // Logo PJ — hexágono maior
+    var chcx = 22, chcy = 23, chr = 17;
+    var chexPts = [];
+    for (var chi = 0; chi < 6; chi++) {
+      var chang = Math.PI / 180 * (60 * chi - 30);
+      chexPts.push([chcx + chr * Math.cos(chang), chcy + chr * Math.sin(chang)]);
+    }
+    docPdf.setFillColor(13, 56, 120);
+    docPdf.setDrawColor(0, 200, 248); docPdf.setLineWidth(1.0);
+    docPdf.lines(
+      chexPts.slice(1).map(function(p, i) { return [p[0] - chexPts[i][0], p[1] - chexPts[i][1]]; })
+        .concat([[chexPts[0][0] - chexPts[5][0], chexPts[0][1] - chexPts[5][1]]]),
+      chexPts[0][0], chexPts[0][1], [1,1], 'FD', true
+    );
+    docPdf.setFillColor(20, 80, 180);
+    docPdf.circle(chcx, chcy - 4, 4, 'F');
+    docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(11); docPdf.setTextColor(255, 255, 255);
+    docPdf.text('P', chcx - 3.5, chcy + 1.5);
+    docPdf.setTextColor(0, 234, 255);
+    docPdf.text('J', chcx + 2.5, chcy + 1.5);
+    docPdf.setDrawColor(0, 200, 248); docPdf.setLineWidth(0.6);
+    docPdf.line(chcx - 5, chcy + 4, chcx + 5, chcy + 4);
+    docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(9.5); docPdf.setTextColor(0, 200, 248);
+    docPdf.text('PJ TECNOLOGIA', 43, 17);
+    docPdf.setFontSize(9); docPdf.setTextColor(200, 220, 240);
+    docPdf.text('E SISTEMAS', 43, 24);
+    docPdf.setFont('helvetica', 'normal'); docPdf.setFontSize(5.5); docPdf.setTextColor(0, 160, 200);
+    docPdf.text('Inovacao que conecta. Tecnologia que transforma.', 43, 31);
     // Linha separadora vertical
     docPdf.setDrawColor(60, 80, 110); docPdf.setLineWidth(0.4);
-    docPdf.line(118, 5, 118, 37);
+    docPdf.line(118, 5, 118, 41);
     // Título centralizado à direita
     docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(14); docPdf.setTextColor(247, 183, 49);
-    docPdf.text(titulos[filtroRelatorio], 163, 16, { align: 'center' });
+    docPdf.text(titulos[filtroRelatorio], 163, 18, { align: 'center' });
     docPdf.setFontSize(8); docPdf.setTextColor(139, 151, 176);
-    docPdf.text('Gerado em: ' + dataHoje + ' as ' + horaHoje, 163, 24, { align: 'center' });
+    docPdf.text('Gerado em: ' + dataHoje + ' as ' + horaHoje, 163, 26, { align: 'center' });
 
-    var y = 45;
+    var y = 50;
 
     if (filtroRelatorio === 'todos') {
       docPdf.setFillColor(22, 27, 34);
@@ -3458,6 +3476,14 @@
     return 20;
   }
 
+  // ── Helper: nova página com fundo branco (modo impressão clara) ──
+  function pdfNovaPageClara(doc, W) {
+    doc.addPage();
+    doc.setFillColor(255, 255, 255);
+    doc.rect(0, 0, W, 297, 'F');
+    return 20;
+  }
+
   // ── Helper: cabeçalho PDF reutilizável ───────────────
   function pdfCabecalho(doc, W, titulo, subtitulo, badges) {
     doc.setFillColor(13, 17, 23);
@@ -3467,31 +3493,53 @@
     doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.8);
     doc.line(0, 44, W, 44);
 
-    // Logo PJ — lado esquerdo do cabeçalho
-    doc.setFillColor(13, 56, 120); doc.setDrawColor(0, 200, 248); doc.setLineWidth(0.7);
-    doc.triangle(10,7, 18,3, 26,7, 'FD');
-    doc.triangle(10,7, 26,7, 26,17, 'FD');
-    doc.triangle(10,7, 26,17, 18,21, 'FD');
-    doc.triangle(10,7, 18,21, 10,17, 'FD');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(6); doc.setTextColor(255, 255, 255);
-    doc.text('PJ', 18, 14.5, { align: 'center' });
-    doc.setTextColor(0, 200, 248); doc.setFontSize(7.5);
-    doc.text('PJ TECNOLOGIA E SISTEMAS', 30, 10);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(5); doc.setTextColor(0, 170, 210);
-    doc.text('Inovacao que conecta. Tecnologia que transforma.', 30, 16);
+    // Logo PJ — lado esquerdo do cabeçalho (aumentada)
+    // Hexágono: centro em (22, 22), raio ~17mm → cobre y=5..39, x=7..37
+    var hcx = 22, hcy = 22, hr = 17;
+    var hexPts = [];
+    for (var hi = 0; hi < 6; hi++) {
+      var ang = Math.PI / 180 * (60 * hi - 30);
+      hexPts.push([hcx + hr * Math.cos(ang), hcy + hr * Math.sin(ang)]);
+    }
+    // Fundo do hexágono
+    doc.setFillColor(13, 56, 120);
+    doc.setDrawColor(0, 200, 248); doc.setLineWidth(1.0);
+    doc.lines(
+      hexPts.slice(1).map(function(p, i) { return [p[0] - hexPts[i][0], p[1] - hexPts[i][1]]; })
+        .concat([[hexPts[0][0] - hexPts[5][0], hexPts[0][1] - hexPts[5][1]]]),
+      hexPts[0][0], hexPts[0][1], [1,1], 'FD', true
+    );
+    // Brilho interno
+    doc.setFillColor(20, 80, 180);
+    doc.circle(hcx, hcy - 4, 4, 'F');
+    // Monograma "PJ"
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+    doc.text('P', hcx - 3.5, hcy + 1.5);
+    doc.setTextColor(0, 234, 255);
+    doc.text('J', hcx + 2.5, hcy + 1.5);
+    // Sublinhado decorativo
+    doc.setDrawColor(0, 200, 248); doc.setLineWidth(0.6);
+    doc.line(hcx - 5, hcy + 4, hcx + 5, hcy + 4);
+    // Texto da marca ao lado do hexágono
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(0, 200, 248);
+    doc.text('PJ TECNOLOGIA', 43, 16);
+    doc.setFontSize(9); doc.setTextColor(200, 220, 240);
+    doc.text('E SISTEMAS', 43, 23);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(5.5); doc.setTextColor(0, 160, 200);
+    doc.text('Inovacao que conecta. Tecnologia que transforma.', 43, 30);
 
     // Separador vertical
     doc.setDrawColor(50, 70, 100); doc.setLineWidth(0.4);
-    doc.line(108, 5, 108, 40);
+    doc.line(115, 5, 115, 40);
 
     // Título e subtítulo à direita
     doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(247, 183, 49);
-    doc.text(titulo, (W + 108) / 2, 13, { align: 'center' });
+    doc.text(titulo, (W + 115) / 2, 13, { align: 'center' });
     doc.setFontSize(7.5); doc.setTextColor(139, 151, 176); doc.setFont('helvetica', 'normal');
-    doc.text(subtitulo, (W + 108) / 2, 20, { align: 'center' });
+    doc.text(subtitulo, (W + 115) / 2, 20, { align: 'center' });
 
-    var bw = Math.floor((W - 108 - 14) / badges.length);
-    var bx = 110; var by = 27;
+    var bw = Math.floor((W - 115 - 14) / badges.length);
+    var bx = 117; var by = 27;
     badges.forEach(function(b) {
       doc.setFillColor(30, 40, 60);
       doc.roundedRect(bx, by - 4, bw - 3, 12, 2, 2, 'F');
@@ -3566,11 +3614,41 @@
     y = pdfKpis(doc, y, totalFTs, totalValor, media);
 
     if (modoDetalhe) {
-      doc.setFillColor(22, 34, 52);
+      // ── Preenche o restante da página com fundo branco para impressão clara ──
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, y, 210, 297 - y, 'F');
+      // KPIs mais claros (reescreve por cima com fundo branco)
+      var kpisClaro = [
+        { label: 'TOTAL DE FTs', value: String(totalFTs),                                color: [20, 140, 80]  },
+        { label: 'VALOR TOTAL',  value: 'R$ ' + totalValor.toFixed(2).replace('.', ','), color: [140, 90, 0]   },
+        { label: 'MÉDIA POR FT', value: 'R$ ' + media.toFixed(2).replace('.', ','),      color: [30, 90, 160]  }
+      ];
+      var kxc = 15; var kyc = y - 28;
+      kpisClaro.forEach(function(k) {
+        doc.setFillColor(240, 245, 255);
+        doc.roundedRect(kxc, kyc, 58, 22, 3, 3, 'F');
+        doc.setDrawColor(200, 210, 230); doc.setLineWidth(0.3);
+        doc.roundedRect(kxc, kyc, 58, 22, 3, 3, 'D');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
+        doc.setTextColor(k.color[0], k.color[1], k.color[2]);
+        doc.text(k.value, kxc + 29, kyc + 12, { align: 'center' });
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setTextColor(80, 90, 110);
+        doc.text(k.label, kxc + 29, kyc + 18, { align: 'center' });
+        kxc += 62;
+      });
+
+      // Título do colaborador
+      doc.setFillColor(30, 60, 120);
+      doc.roundedRect(10, y - 3, 190, 10, 2, 2, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+      doc.text('👤 Colaborador: ' + nomeLabel, 105, y + 3.5, { align: 'center' });
+      y += 12;
+
+      doc.setFillColor(240, 245, 255);
       doc.rect(10, y, 190, 10, 'F');
-      doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.3);
+      doc.setDrawColor(180, 190, 210); doc.setLineWidth(0.3);
       doc.line(10, y + 10, 200, y + 10);
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(247, 183, 49);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(30, 50, 100);
       doc.text('#',         15, y + 6.5);
       doc.text('Data / Hora', 22, y + 6.5);
       doc.text('Posto',    80, y + 6.5);
@@ -3583,39 +3661,73 @@
       });
 
       ftsOrdenadas.forEach(function(r, i) {
-        if (y > 272) { y = pdfNovaPage(doc, W); }
+        if (y > 272) { y = pdfNovaPageClara(doc, W); }
         var even = i % 2 === 0;
-        doc.setFillColor(even ? 28 : 22, even ? 34 : 27, even ? 48 : 38);
+        // Linhas alternadas em tons claros
+        doc.setFillColor(even ? 255 : 245, even ? 255 : 248, even ? 255 : 255);
         doc.rect(10, y - 2, 190, 9, 'F');
+        // Borda inferior suave
+        doc.setDrawColor(220, 225, 235); doc.setLineWidth(0.2);
+        doc.line(10, y + 7, 200, y + 7);
         var dtStr = r.dataHora
           ? new Date(r.dataHora).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
           : '—';
         var postoStr  = (r.posto  || '—').length > 22 ? (r.posto  || '—').slice(0,21)+'…' : (r.posto  || '—');
         var tipoStr   = r.tipo === 'bico' ? 'Bico Fixo' : (r.motivo || '—');
         if (tipoStr.length > 20) tipoStr = tipoStr.slice(0,19)+'…';
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(139, 151, 176);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(160, 170, 185);
         doc.text(String(i + 1).padStart(2, '0'), 14, y + 4.5);
-        doc.setFont('helvetica', 'normal'); doc.setTextColor(232, 237, 245);
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 50, 70);
         doc.text(dtStr,     22, y + 4.5);
-        doc.setTextColor(69, 170, 242);
+        doc.setTextColor(r.tipo === 'bico' ? 120 : 30, r.tipo === 'bico' ? 60 : 80, r.tipo === 'bico' ? 180 : 160);
         doc.text(postoStr,  80, y + 4.5);
-        doc.setTextColor(r.tipo === 'bico' ? 165 : 253, r.tipo === 'bico' ? 94 : 150, r.tipo === 'bico' ? 234 : 68);
+        doc.setTextColor(r.tipo === 'bico' ? 120 : 160, r.tipo === 'bico' ? 40 : 90, r.tipo === 'bico' ? 180 : 20);
         doc.text(tipoStr, 138, y + 4.5);
-        doc.setFont('helvetica', 'bold'); doc.setTextColor(247, 183, 49);
+        doc.setFont('helvetica', 'bold'); doc.setTextColor(20, 120, 60);
         doc.text('R$ ' + (r.valor || 0).toFixed(2).replace('.', ','), 197, y + 4.5, { align: 'right' });
         y += 9;
       });
 
       y += 4;
-      doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.4);
+      doc.setDrawColor(180, 160, 40); doc.setLineWidth(0.4);
       doc.line(10, y, 200, y); y += 6;
-      doc.setFillColor(34, 40, 28); doc.rect(10, y - 3, 190, 10, 'F');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(247, 183, 49);
+      doc.setFillColor(255, 250, 220); doc.rect(10, y - 3, 190, 10, 'F');
+      doc.setDrawColor(200, 180, 40); doc.setLineWidth(0.3);
+      doc.rect(10, y - 3, 190, 10, 'D');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(120, 80, 0);
       doc.text('TOTAL A RECEBER', 22, y + 3.5);
-      doc.setTextColor(38, 222, 129);
+      doc.setTextColor(20, 120, 60);
       doc.text(String(totalFTs) + ' lançamento' + (totalFTs !== 1 ? 's' : ''), 155, y + 3.5, { align: 'right' });
-      doc.setTextColor(247, 183, 49);
+      doc.setTextColor(140, 90, 0);
       doc.text('R$ ' + totalValor.toFixed(2).replace('.', ','), 197, y + 3.5, { align: 'right' });
+
+      // ── Bloco de assinatura (apenas quando filtrado por colaborador) ──
+      y += 18;
+      // Verifica se cabe na página; se não, adiciona nova página
+      if (y + 55 > 272) {
+        y = pdfNovaPageClara(doc, W);
+        y += 4;
+      }
+      // Caixa branca de destaque para assinatura
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(10, y, 190, 48, 3, 3, 'FD');
+      // Título da caixa
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(40, 40, 40);
+      doc.text('DECLARAÇÃO DE RECEBIMENTO', 105, y + 7, { align: 'center' });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(80, 80, 80);
+      var declText = 'Eu, ' + nomeLabel + ', declaro que estou de acordo com os lançamentos acima, referentes às';
+      var declText2 = 'Folgas Trabalhadas (FT) listadas neste relatório, e confirmo o recebimento dos valores correspondentes.';
+      doc.text(declText,  105, y + 14, { align: 'center' });
+      doc.text(declText2, 105, y + 19, { align: 'center' });
+      // Linha de assinatura
+      doc.setDrawColor(60, 60, 60); doc.setLineWidth(0.6);
+      doc.line(30, y + 37, 180, y + 37);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(80, 80, 80);
+      doc.text('Assinatura do Colaborador: ' + nomeLabel, 105, y + 42, { align: 'center' });
+      doc.setTextColor(120, 120, 120);
+      doc.text('Data: ______ / ______ / __________', 105, y + 47, { align: 'center' });
 
     } else {
       var data = buildDatasetAll(ftsFiltradas);
@@ -3658,10 +3770,20 @@
     var totalPages = doc.internal.getNumberOfPages();
     for (var pg = 1; pg <= totalPages; pg++) {
       doc.setPage(pg);
-      doc.setDrawColor(42, 51, 71); doc.setLineWidth(0.3); doc.line(10, 285, 200, 285);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(139, 151, 176);
-      doc.text('PJ Tecnologia e Sistemas  |  Sistema de Folga Trabalhada', W / 2, 290, { align: 'center' });
-      doc.text('Pág. ' + pg + ' / ' + totalPages, 195, 290, { align: 'right' });
+      if (modoDetalhe) {
+        // Rodapé em fundo claro — texto escuro
+        doc.setFillColor(245, 245, 245);
+        doc.rect(0, 283, 210, 14, 'F');
+        doc.setDrawColor(200, 210, 220); doc.setLineWidth(0.3); doc.line(10, 284, 200, 284);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(100, 110, 130);
+        doc.text('PJ Tecnologia e Sistemas  |  Sistema de Folga Trabalhada', W / 2, 290, { align: 'center' });
+        doc.text('Pág. ' + pg + ' / ' + totalPages, 195, 290, { align: 'right' });
+      } else {
+        doc.setDrawColor(42, 51, 71); doc.setLineWidth(0.3); doc.line(10, 285, 200, 285);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(139, 151, 176);
+        doc.text('PJ Tecnologia e Sistemas  |  Sistema de Folga Trabalhada', W / 2, 290, { align: 'center' });
+        doc.text('Pág. ' + pg + ' / ' + totalPages, 195, 290, { align: 'right' });
+      }
     }
 
     var nomeFiltroArq = dashNomeFiltro ? '_' + dashNomeFiltro.replace(/\s+/g, '_') : '';
