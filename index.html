@@ -599,6 +599,63 @@
   }
   .btn-remove:hover { background: rgba(252,92,101,.3); }
 
+  .btn-edit-item {
+    border: none;
+    background: rgba(69,170,242,.15);
+    color: var(--accent3);
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-size: .85rem;
+    cursor: pointer;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: background .2s;
+    margin-right: 4px;
+  }
+  .btn-edit-item:hover { background: rgba(69,170,242,.32); }
+
+  /* Inline edit mode */
+  .list-item.editing { background: rgba(69,170,242,.08); border-color: rgba(69,170,242,.4); }
+  .list-item-edit-input {
+    flex: 1;
+    background: var(--input-bg);
+    border: 1.5px solid var(--accent3);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: .9rem;
+    padding: 6px 12px;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(69,170,242,.15);
+  }
+  .btn-save-item {
+    border: none;
+    background: rgba(38,222,129,.2);
+    color: var(--accent2);
+    border-radius: 7px;
+    padding: 5px 11px;
+    font-size: .82rem;
+    cursor: pointer;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: background .2s;
+    margin-right: 4px;
+  }
+  .btn-save-item:hover { background: rgba(38,222,129,.35); }
+  .btn-cancel-item {
+    border: none;
+    background: rgba(139,151,176,.12);
+    color: var(--muted);
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-size: .82rem;
+    cursor: pointer;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  .btn-cancel-item:hover { background: rgba(139,151,176,.25); }
+
   .empty-state { text-align: center; color: var(--muted); font-size: .88rem; padding: 16px 0; }
 
   /* ── Dashboard ── */
@@ -1200,6 +1257,7 @@
     <button class="tab-btn active" data-tab="tab-ft">&#x1F4CB; Nova FT</button>
     <button class="tab-btn" data-tab="tab-cadastros">&#x1F5C2;&#xFE0F; Cadastros</button>
     <button class="tab-btn" data-tab="tab-dashboard">&#x1F4CA; Dashboard</button>
+    <button class="tab-btn" data-tab="tab-geral" style="position:relative;">&#x1F30D; Geral<span style="position:absolute;top:-5px;right:-3px;background:var(--accent2);color:#0d1117;font-size:.52rem;font-weight:800;padding:2px 5px;border-radius:8px;letter-spacing:.3px;">NEW</span></button>
     <button class="tab-btn" data-tab="tab-historico">&#x1F4DC; Histórico</button>
     <button class="tab-btn" data-tab="tab-bico">&#x1F4A0; Bico Fixo</button>
   </div>
@@ -1453,6 +1511,127 @@
           <span class="exp-icon">&#x1F4CA;</span>
           <span>Excel</span>
           <span class="exp-sub" id="dash-exp-sub-excel">Todos · Todos os períodos</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ABA: DASHBOARD GERAL -->
+  <div class="tab-panel hidden" id="tab-geral">
+
+    <!-- Filtros sincronizados -->
+    <div class="dash-filter-card">
+      <div class="dash-filter-group" style="margin-bottom:14px;">
+        <label class="dash-filter-label">&#x1F4C2; Fonte dos dados</label>
+        <div class="dash-pill-row">
+          <button class="dash-pill active" data-geral-fonte="todos">&#x1F4CB; Todos</button>
+          <button class="dash-pill" data-geral-fonte="ft">&#x1F4CB; FT</button>
+          <button class="dash-pill" data-geral-fonte="bico">&#x1F4A0; Bico Fixo</button>
+        </div>
+      </div>
+      <div class="dash-filter-row" style="gap:12px;">
+        <div class="dash-filter-group" style="flex:1;">
+          <label class="dash-filter-label">&#x1F464; Colaborador</label>
+          <select id="geralSelectColaborador" class="dash-select">
+            <option value="">— Todos —</option>
+          </select>
+        </div>
+        <div class="dash-filter-group" style="flex:1;">
+          <label class="dash-filter-label">&#x1F4CD; Posto</label>
+          <select id="geralSelectPosto" class="dash-select">
+            <option value="">— Todos —</option>
+          </select>
+        </div>
+      </div>
+      <div class="dash-filter-row" style="margin-top:10px;gap:12px;">
+        <div class="dash-filter-group" style="flex:1;">
+          <label class="dash-filter-label">&#x1F4AC; Motivo</label>
+          <select id="geralSelectMotivo" class="dash-select">
+            <option value="">— Todos —</option>
+            <option>Afastamento</option>
+            <option>Atestado</option>
+            <option>Cobertura de Férias</option>
+            <option>Extra</option>
+            <option>Falta de Efetivo</option>
+            <option>Folga do Vigia</option>
+            <option>Remanejamento Interno</option>
+            <option>Suspensão</option>
+            <option>Treinamento</option>
+            <option>Bico Fixo</option>
+          </select>
+        </div>
+        <div class="dash-filter-group" style="flex:1;">
+          <label class="dash-filter-label">&#x1F4C5; Período</label>
+          <div class="dash-pill-row">
+            <button class="dash-pill active" data-geral-period="todos">Todos</button>
+            <button class="dash-pill" data-geral-period="mes">Mês</button>
+            <button class="dash-pill" data-geral-period="ano">Ano</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs Geral -->
+    <div class="kpi-row">
+      <div class="kpi-card kpi-green">
+        <div class="kpi-value" id="geral-kpi-total">0</div>
+        <div class="kpi-label">Lançamentos</div>
+      </div>
+      <div class="kpi-card kpi-amber">
+        <div class="kpi-value" id="geral-kpi-valor">R$ 0</div>
+        <div class="kpi-label">Valor Total</div>
+      </div>
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-value" id="geral-kpi-media">R$ 0</div>
+        <div class="kpi-label">Média</div>
+      </div>
+    </div>
+
+    <!-- Tipo FT vs Bico pills info -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;text-align:center;">
+        <div id="geral-kpi-ft-qtd" style="font-family:'Exo 2',sans-serif;font-size:1.1rem;font-weight:800;color:var(--accent3);">0</div>
+        <div style="font-size:.65rem;color:var(--muted);font-weight:600;letter-spacing:.4px;">FTs</div>
+      </div>
+      <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;text-align:center;">
+        <div id="geral-kpi-bico-qtd" style="font-family:'Exo 2',sans-serif;font-size:1.1rem;font-weight:800;color:#a55eea;">0</div>
+        <div style="font-size:.65rem;color:var(--muted);font-weight:600;letter-spacing:.4px;">Bicos Fixos</div>
+      </div>
+      <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;text-align:center;">
+        <div id="geral-kpi-ft-valor" style="font-family:'Exo 2',sans-serif;font-size:1.1rem;font-weight:800;color:var(--accent2);">R$ 0</div>
+        <div style="font-size:.65rem;color:var(--muted);font-weight:600;letter-spacing:.4px;">Valor FTs</div>
+      </div>
+      <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;text-align:center;">
+        <div id="geral-kpi-bico-valor" style="font-family:'Exo 2',sans-serif;font-size:1.1rem;font-weight:800;color:#fd9644;">R$ 0</div>
+        <div style="font-size:.65rem;color:var(--muted);font-weight:600;letter-spacing:.4px;">Valor Bicos</div>
+      </div>
+    </div>
+
+    <!-- Lista de lançamentos filtrada -->
+    <div class="dash-card" style="padding:0;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;">
+        <span class="dash-card-title">&#x1F4CB; Lançamentos</span>
+        <span id="geral-list-count" style="font-size:.72rem;color:var(--muted);"></span>
+      </div>
+      <div id="geralList" style="max-height:460px;overflow-y:auto;padding:0 12px 12px;display:flex;flex-direction:column;gap:8px;">
+        <div class="dash-empty">Nenhum lançamento encontrado.</div>
+      </div>
+    </div>
+
+    <!-- Exportação -->
+    <div class="dash-export-card">
+      <div class="dash-export-label">&#x1F4E4; Exportar lista filtrada</div>
+      <div class="dash-export-row">
+        <button class="btn-dash-export btn-dash-pdf" id="btnGeralPDF">
+          <span class="exp-icon">&#x1F4C4;</span>
+          <span>PDF</span>
+          <span class="exp-sub" id="geral-exp-sub-pdf">Todos · Todos os períodos</span>
+        </button>
+        <button class="btn-dash-export btn-dash-excel" id="btnGeralExcel">
+          <span class="exp-icon">&#x1F4CA;</span>
+          <span>Excel</span>
+          <span class="exp-sub" id="geral-exp-sub-excel">Todos · Todos os períodos</span>
         </button>
       </div>
     </div>
@@ -2209,9 +2388,12 @@
       return;
     }
     list.innerHTML = sortAlpha(colaboradores).map(function(c) {
-      return '<div class="list-item">' +
+      return '<div class="list-item" data-id="' + c.id + '" data-tipo="colab">' +
         '<span>&#x1F464; ' + escHtml(c.nome) + '</span>' +
-        '<button class="btn-remove" data-id="' + c.id + '" data-tipo="colab">&#x2715;</button>' +
+        '<div style="display:flex;gap:4px;flex-shrink:0;">' +
+          '<button class="btn-edit-item" data-id="' + c.id + '" data-tipo="colab" title="Editar nome">&#x270F;&#xFE0F;</button>' +
+          '<button class="btn-remove"    data-id="' + c.id + '" data-tipo="colab" title="Remover">&#x2715;</button>' +
+        '</div>' +
         '</div>';
     }).join('');
   }
@@ -2233,6 +2415,7 @@
     fillSelect('substituido', colaboradores);
     fillBicoSelects();
     fillDashSelect();
+    fillGeralSelects();
     renderColaboradoresList();
     input.value = '';
     showToast('✅ Colaborador adicionado!', 'success');
@@ -2249,6 +2432,7 @@
     fillSelect('substituido', colaboradores);
     fillBicoSelects();
     fillDashSelect();
+    fillGeralSelects();
     renderColaboradoresList();
     showToast('&#x1F5D1;&#xFE0F; Colaborador removido.', 'success');
   }
@@ -2261,9 +2445,12 @@
       return;
     }
     list.innerHTML = sortAlpha(postos).map(function(p) {
-      return '<div class="list-item">' +
+      return '<div class="list-item" data-id="' + p.id + '" data-tipo="posto">' +
         '<span>&#x1F4CD; ' + escHtml(p.nome) + '</span>' +
-        '<button class="btn-remove" data-id="' + p.id + '" data-tipo="posto">&#x2715;</button>' +
+        '<div style="display:flex;gap:4px;flex-shrink:0;">' +
+          '<button class="btn-edit-item" data-id="' + p.id + '" data-tipo="posto" title="Editar nome">&#x270F;&#xFE0F;</button>' +
+          '<button class="btn-remove"    data-id="' + p.id + '" data-tipo="posto" title="Remover">&#x2715;</button>' +
+        '</div>' +
         '</div>';
     }).join('');
   }
@@ -2283,6 +2470,7 @@
     fillSelect('posto', postos);
     fillBicoSelects();
     fillDashSelect();
+    fillGeralSelects();
     renderPostosList();
     input.value = '';
     showToast('✅ Posto adicionado!', 'success');
@@ -2297,6 +2485,7 @@
     fillSelect('posto', postos);
     fillBicoSelects();
     fillDashSelect();
+    fillGeralSelects();
     renderPostosList();
     showToast('&#x1F5D1;&#xFE0F; Posto removido.', 'success');
   }
@@ -2574,6 +2763,10 @@
       fillDashSelect();
       setTimeout(renderDashboard, 50);
     }
+    if (tabId === 'tab-geral') {
+      fillGeralSelects();
+      setTimeout(renderGeralList, 50);
+    }
     if (tabId === 'tab-historico') {
       renderHistorico();
     }
@@ -2757,14 +2950,94 @@
     showToast('&#x1F4CA; Excel gerado com sucesso!', 'success');
   }
 
+  // ── Edição inline de cadastros ───────────────────
+  function ativarEdicaoItem(itemEl, id, tipo) {
+    if (itemEl.classList.contains('editing')) return;
+    var spanEl = itemEl.querySelector('span');
+    var nomeAtual = tipo === 'colab'
+      ? (colaboradores.find(function(c){ return c.id === id; }) || {}).nome || ''
+      : (postos.find(function(p){ return p.id === id; }) || {}).nome || '';
+
+    itemEl.classList.add('editing');
+    var emoji = tipo === 'colab' ? '👤 ' : '📍 ';
+    itemEl.innerHTML =
+      '<input class="list-item-edit-input" type="text" value="' + escHtml(nomeAtual) + '" maxlength="80">' +
+      '<div style="display:flex;gap:4px;flex-shrink:0;">' +
+        '<button class="btn-save-item"   data-id="' + id + '" data-tipo="' + tipo + '">&#x2713; Salvar</button>' +
+        '<button class="btn-cancel-item" data-id="' + id + '" data-tipo="' + tipo + '">&#x2715;</button>' +
+      '</div>';
+
+    var inp = itemEl.querySelector('.list-item-edit-input');
+    inp.focus();
+    inp.select();
+    inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter')  salvarEdicaoItem(id, tipo, inp.value);
+      if (e.key === 'Escape') { if (tipo === 'colab') renderColaboradoresList(); else renderPostosList(); }
+    });
+  }
+
+  function salvarEdicaoItem(id, tipo, novoNome) {
+    novoNome = novoNome.trim();
+    if (!novoNome) { showToast('⚠️ O nome não pode ser vazio.', 'error'); return; }
+
+    if (tipo === 'colab') {
+      var duplicado = colaboradores.some(function(c) {
+        return c.id !== id && c.nome.toLowerCase() === novoNome.toLowerCase();
+      });
+      if (duplicado) { showToast('⚠️ Colaborador já cadastrado.', 'error'); return; }
+      colaboradores = colaboradores.map(function(c) {
+        return c.id === id ? { id: c.id, nome: novoNome } : c;
+      });
+      saveStorage(LS_COLAB, colaboradores);
+      fillSelect('substituto',  colaboradores);
+      fillSelect('quemFaltou',  colaboradores);
+      fillSelect('substituido', colaboradores);
+      fillBicoSelects();
+      fillDashSelect();
+      renderColaboradoresList();
+      showToast('✅ Colaborador atualizado!', 'success');
+    } else {
+      var dupPosto = postos.some(function(p) {
+        return p.id !== id && p.nome.toLowerCase() === novoNome.toLowerCase();
+      });
+      if (dupPosto) { showToast('⚠️ Posto já cadastrado.', 'error'); return; }
+      postos = postos.map(function(p) {
+        return p.id === id ? { id: p.id, nome: novoNome } : p;
+      });
+      saveStorage(LS_POSTOS, postos);
+      fillSelect('posto', postos);
+      fillBicoSelects();
+      fillDashSelect();
+      renderPostosList();
+      showToast('✅ Posto atualizado!', 'success');
+    }
+  }
+
   // ── Delegação de eventos para botões dinâmicos ───
   function onListClick(e) {
-    var btn = e.target.closest('.btn-remove');
-    if (!btn) return;
-    var id   = btn.dataset.id;
-    var tipo = btn.dataset.tipo;
-    if (tipo === 'colab') removeColaborador(id);
-    else if (tipo === 'posto') removePosto(id);
+    var btnRemove = e.target.closest('.btn-remove');
+    var btnEdit   = e.target.closest('.btn-edit-item');
+    var btnSave   = e.target.closest('.btn-save-item');
+    var btnCancel = e.target.closest('.btn-cancel-item');
+
+    if (btnRemove) {
+      var id   = btnRemove.dataset.id;
+      var tipo = btnRemove.dataset.tipo;
+      if (tipo === 'colab') removeColaborador(id);
+      else if (tipo === 'posto') removePosto(id);
+    }
+    if (btnEdit) {
+      var itemEl = btnEdit.closest('.list-item');
+      ativarEdicaoItem(itemEl, btnEdit.dataset.id, btnEdit.dataset.tipo);
+    }
+    if (btnSave) {
+      var inp = btnSave.closest('.list-item').querySelector('.list-item-edit-input');
+      salvarEdicaoItem(btnSave.dataset.id, btnSave.dataset.tipo, inp ? inp.value : '');
+    }
+    if (btnCancel) {
+      if (btnCancel.dataset.tipo === 'colab') renderColaboradoresList();
+      else renderPostosList();
+    }
   }
 
   // ════════════════════════════════════════════════
@@ -3526,7 +3799,12 @@
     window.addEventListener('resize', function() {
       var dash = document.getElementById('tab-dashboard');
       if (dash && !dash.classList.contains('hidden')) renderDashboard();
+      var geral = document.getElementById('tab-geral');
+      if (geral && !geral.classList.contains('hidden')) renderGeralList();
     });
+
+    // Inicializa Dashboard Geral
+    initDashboardGeral();
   }
 
   if (document.readyState === 'loading') {
@@ -3741,6 +4019,357 @@
 
     window.showToast = showToast;
 
+  // ════════════════════════════════════════════════
+  // ── DASHBOARD GERAL ─────────────────────────────
+  // ════════════════════════════════════════════════
+
+  var geralFonte    = 'todos';
+  var geralPeriod   = 'todos';
+  var geralColabFiltro  = '';
+  var geralPostoFiltro  = '';
+  var geralMotivoFiltro = '';
+
+  // Cor por motivo (badge lateral)
+  var GERAL_BORDA = {
+    'Atestado':             '#fc5c65',
+    'Suspensão':            '#fc5c65',
+    'Afastamento':          '#fc5c65',
+    'Folga do Vigia':       '#f7b731',
+    'Cobertura de Férias':  '#45aaf2',
+    'Remanejamento Interno':'#a55eea',
+    'Falta de Efetivo':     '#fd9644',
+    'Extra':                '#26de81',
+    'Treinamento':          '#2bcbba',
+    'Bico Fixo':            '#a55eea'
+  };
+
+  function fillGeralSelects() {
+    var selColab  = document.getElementById('geralSelectColaborador');
+    var selPosto  = document.getElementById('geralSelectPosto');
+    if (!selColab || !selPosto) return;
+
+    selColab.innerHTML = '<option value="">— Todos —</option>';
+    sortAlpha(colaboradores).forEach(function(c) {
+      var o = document.createElement('option');
+      o.value = o.textContent = c.nome;
+      if (c.nome === geralColabFiltro) o.selected = true;
+      selColab.appendChild(o);
+    });
+
+    selPosto.innerHTML = '<option value="">— Todos —</option>';
+    sortAlpha(postos).forEach(function(p) {
+      var o = document.createElement('option');
+      o.value = o.textContent = p.nome;
+      if (p.nome === geralPostoFiltro) o.selected = true;
+      selPosto.appendChild(o);
+    });
+  }
+
+  function getGeralLancamentos() {
+    var items = getLancamentosByFonte(geralFonte);
+
+    // Filtro período
+    if (geralPeriod !== 'todos') {
+      var now = new Date();
+      items = items.filter(function(r) {
+        var d = new Date(r.dataHora || r.criadoEm);
+        if (geralPeriod === 'mes') return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        if (geralPeriod === 'ano') return d.getFullYear() === now.getFullYear();
+        return true;
+      });
+    }
+
+    // Filtro colaborador
+    if (geralColabFiltro) {
+      items = items.filter(function(r) {
+        var nome = r.tipo === 'bico' ? r.colaborador : r.substituto;
+        return nome === geralColabFiltro;
+      });
+    }
+
+    // Filtro posto
+    if (geralPostoFiltro) {
+      items = items.filter(function(r) { return r.posto === geralPostoFiltro; });
+    }
+
+    // Filtro motivo
+    if (geralMotivoFiltro) {
+      items = items.filter(function(r) {
+        if (geralMotivoFiltro === 'Bico Fixo') return r.tipo === 'bico';
+        return r.motivo === geralMotivoFiltro;
+      });
+    }
+
+    return items;
+  }
+
+  function renderGeralList() {
+    var items = getGeralLancamentos();
+
+    // Ordena do mais recente para o mais antigo
+    items = items.slice().sort(function(a, b) {
+      return new Date(b.dataHora || b.criadoEm) - new Date(a.dataHora || a.criadoEm);
+    });
+
+    // KPIs
+    var totalFTs   = items.filter(function(r) { return r.tipo !== 'bico'; }).length;
+    var totalBicos = items.filter(function(r) { return r.tipo === 'bico'; }).length;
+    var valorFTs   = items.filter(function(r) { return r.tipo !== 'bico'; }).reduce(function(s,r){ return s+(r.valor||0); }, 0);
+    var valorBicos = items.filter(function(r) { return r.tipo === 'bico'; }).reduce(function(s,r){ return s+(r.valor||0); }, 0);
+    var totalValor = items.reduce(function(s,r){ return s+(r.valor||0); }, 0);
+    var media      = items.length ? totalValor / items.length : 0;
+
+    var el = function(id) { return document.getElementById(id); };
+    if (el('geral-kpi-total'))      el('geral-kpi-total').textContent      = items.length;
+    if (el('geral-kpi-valor'))      el('geral-kpi-valor').textContent      = 'R$ ' + totalValor.toFixed(2).replace('.',',');
+    if (el('geral-kpi-media'))      el('geral-kpi-media').textContent      = 'R$ ' + media.toFixed(2).replace('.',',');
+    if (el('geral-kpi-ft-qtd'))     el('geral-kpi-ft-qtd').textContent     = totalFTs;
+    if (el('geral-kpi-bico-qtd'))   el('geral-kpi-bico-qtd').textContent   = totalBicos;
+    if (el('geral-kpi-ft-valor'))   el('geral-kpi-ft-valor').textContent   = 'R$ ' + valorFTs.toFixed(2).replace('.',',');
+    if (el('geral-kpi-bico-valor')) el('geral-kpi-bico-valor').textContent = 'R$ ' + valorBicos.toFixed(2).replace('.',',');
+
+    // Sub legenda exportação
+    var fLabel = geralFonte === 'ft' ? 'FT' : geralFonte === 'bico' ? 'Bico' : 'Todos';
+    var pLabel = geralPeriod === 'mes' ? 'Este mês' : geralPeriod === 'ano' ? 'Este ano' : 'Todos';
+    var subTxt = fLabel + ' · ' + pLabel;
+    if (el('geral-exp-sub-pdf'))   el('geral-exp-sub-pdf').textContent   = subTxt;
+    if (el('geral-exp-sub-excel')) el('geral-exp-sub-excel').textContent = subTxt;
+
+    var listEl = document.getElementById('geralList');
+    var countEl = document.getElementById('geral-list-count');
+    if (!listEl) return;
+
+    if (countEl) countEl.textContent = items.length + ' registro' + (items.length !== 1 ? 's' : '');
+
+    if (!items.length) {
+      listEl.innerHTML = '<div class="dash-empty">Nenhum lançamento com esses filtros.</div>';
+      return;
+    }
+
+    listEl.innerHTML = items.map(function(r) {
+      var isBico  = r.tipo === 'bico';
+      var colabNome = isBico ? (r.colaborador || '—') : (r.substituto || '—');
+      var motivo  = isBico ? 'Bico Fixo' : (r.motivo || '—');
+      var posto   = r.posto || '—';
+      var valor   = (r.valor || 0).toFixed(2).replace('.', ',');
+      var borda   = GERAL_BORDA[motivo] || (isBico ? '#a55eea' : '#45aaf2');
+      var dtStr   = r.dataHora
+        ? new Date(r.dataHora).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+        : '—';
+      var tipoColor = isBico ? '#a55eea' : '#45aaf2';
+      var tipoBg    = isBico ? 'rgba(165,94,234,.15)' : 'rgba(69,170,242,.12)';
+      return '<div style="background:var(--input-bg);border:1px solid var(--border);border-left:3px solid ' + borda + ';border-radius:10px;padding:11px 13px;position:relative;">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:7px;">' +
+          '<div style="font-family:\'Exo 2\',sans-serif;font-size:.88rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;">' +
+            '<span style="background:' + tipoBg + ';color:' + tipoColor + ';font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:8px;letter-spacing:.4px;flex-shrink:0;">' +
+              (isBico ? '🔵 BICO' : '🟡 FT') +
+            '</span>' +
+            escHtml(colabNome) +
+          '</div>' +
+          '<span style="font-family:\'Exo 2\',sans-serif;font-size:.95rem;font-weight:800;color:var(--accent2);white-space:nowrap;">R$ ' + valor + '</span>' +
+        '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;">' +
+          '<span class="hist-tag hist-tag-posto">📍 ' + escHtml(posto) + '</span>' +
+          '<span class="hist-tag hist-tag-motivo">📌 ' + escHtml(motivo) + '</span>' +
+          (r.horario ? '<span class="hist-tag hist-tag-horario">🕐 ' + escHtml(r.horario) + '</span>' : '') +
+        '</div>' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+          '<span style="font-size:.73rem;color:var(--muted);">📅 ' + dtStr + '</span>' +
+          ((!isBico && r.quemFaltou) ? '<span style="font-size:.73rem;color:var(--danger);">🚨 ' + escHtml(r.quemFaltou) + '</span>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Exportar PDF do Dashboard Geral
+  function exportarGeralPDF() {
+    var jsPDF = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDF) { showToast('❌ Biblioteca PDF não carregada.', 'error'); return; }
+    var items = getGeralLancamentos().slice().sort(function(a,b) {
+      return new Date(b.dataHora||b.criadoEm) - new Date(a.dataHora||a.criadoEm);
+    });
+    if (!items.length) { showToast('⚠️ Nenhum dado para exportar.', 'error'); return; }
+
+    var fLabel  = geralFonte === 'ft' ? 'FT' : geralFonte === 'bico' ? 'Bico Fixo' : 'Todos';
+    var pLabel  = geralPeriod === 'mes' ? 'Este Mês' : geralPeriod === 'ano' ? 'Este Ano' : 'Todos os Períodos';
+    var dataHoje = new Date().toLocaleDateString('pt-BR');
+    var W = 210;
+    var doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+    var badges = [
+      { label: 'FONTE',    value: fLabel },
+      { label: 'COLAB.',   value: geralColabFiltro || 'Todos' },
+      { label: 'POSTO',    value: geralPostoFiltro || 'Todos' },
+      { label: 'PERÍODO',  value: pLabel }
+    ];
+    var y = pdfCabecalho(doc, W, 'Dashboard Geral', 'PJ Tecnologia e Sistemas  |  Gerado em: ' + dataHoje, badges);
+
+    var totalValor = items.reduce(function(s,r){ return s+(r.valor||0); }, 0);
+    var media = items.length ? totalValor / items.length : 0;
+    y = pdfKpis(doc, y, items.length, totalValor, media);
+
+    // Cabeçalho tabela
+    doc.setFillColor(22, 34, 52); doc.rect(10, y, 190, 10, 'F');
+    doc.setDrawColor(247,183,49); doc.setLineWidth(0.3); doc.line(10, y+10, 200, y+10);
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(247,183,49);
+    doc.text('#',         15, y+6.5);
+    doc.text('Data',      22, y+6.5);
+    doc.text('Colaborador',55, y+6.5);
+    doc.text('Posto',    105, y+6.5);
+    doc.text('Motivo',   145, y+6.5);
+    doc.text('Valor',    197, y+6.5, { align: 'right' });
+    y += 12;
+
+    items.forEach(function(r, i) {
+      if (y > 272) { y = pdfNovaPage(doc, W); }
+      var isBico = r.tipo === 'bico';
+      var even = i % 2 === 0;
+      doc.setFillColor(even?28:22, even?34:27, even?48:38);
+      doc.rect(10, y-2, 190, 9, 'F');
+      var colabNome = isBico ? (r.colaborador||'—') : (r.substituto||'—');
+      var motivo    = isBico ? 'Bico Fixo' : (r.motivo||'—');
+      var posto     = (r.posto||'—').length > 16 ? (r.posto||'—').slice(0,15)+'…' : (r.posto||'—');
+      var dtStr = r.dataHora
+        ? new Date(r.dataHora).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+        : '—';
+      doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(139,151,176);
+      doc.text(String(i+1).padStart(2,'0'), 14, y+4.5);
+      doc.setFont('helvetica','normal'); doc.setTextColor(232,237,245);
+      doc.text(dtStr.slice(0,14), 22, y+4.5);
+      var cn = colabNome.length>17 ? colabNome.slice(0,16)+'…' : colabNome;
+      doc.setTextColor(232,237,245); doc.text(cn, 55, y+4.5);
+      doc.setTextColor(69,170,242); doc.text(posto, 105, y+4.5);
+      doc.setTextColor(isBico?165:253, isBico?94:150, isBico?234:68);
+      var mot = motivo.length>18 ? motivo.slice(0,17)+'…' : motivo;
+      doc.text(mot, 145, y+4.5);
+      doc.setFont('helvetica','bold'); doc.setTextColor(247,183,49);
+      doc.text('R$ '+(r.valor||0).toFixed(2).replace('.',','), 197, y+4.5, { align:'right' });
+      y += 9;
+    });
+
+    y += 4;
+    doc.setDrawColor(247,183,49); doc.setLineWidth(0.4); doc.line(10, y, 200, y); y += 6;
+    doc.setFillColor(34,40,28); doc.rect(10, y-3, 190, 10, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(247,183,49);
+    doc.text('TOTAL GERAL', 22, y+3.5);
+    doc.setTextColor(38,222,129);
+    doc.text(String(items.length)+' lançamento'+(items.length!==1?'s':''), 155, y+3.5, { align:'right' });
+    doc.setTextColor(247,183,49);
+    doc.text('R$ '+totalValor.toFixed(2).replace('.',','), 197, y+3.5, { align:'right' });
+
+    var totalPages = doc.internal.getNumberOfPages();
+    for (var pg = 1; pg <= totalPages; pg++) {
+      doc.setPage(pg);
+      doc.setDrawColor(42,51,71); doc.setLineWidth(0.3); doc.line(10, 285, 200, 285);
+      doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(139,151,176);
+      doc.text('PJ Tecnologia e Sistemas  |  Dashboard Geral', W/2, 290, { align:'center' });
+      doc.text('Pág. '+pg+' / '+totalPages, 195, 290, { align:'right' });
+    }
+    doc.save('DashboardGeral_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.pdf');
+    showToast('📄 PDF gerado com sucesso!', 'success');
+  }
+
+  // Exportar Excel do Dashboard Geral
+  function exportarGeralExcel() {
+    var XLSX = window.XLSX;
+    if (!XLSX) { showToast('❌ Biblioteca Excel não carregada.', 'error'); return; }
+    var items = getGeralLancamentos().slice().sort(function(a,b) {
+      return new Date(b.dataHora||b.criadoEm) - new Date(a.dataHora||a.criadoEm);
+    });
+    if (!items.length) { showToast('⚠️ Nenhum dado para exportar.', 'error'); return; }
+
+    var rows = [
+      ['DASHBOARD GERAL — PJ Tecnologia e Sistemas'],
+      ['Gerado em: ' + new Date().toLocaleDateString('pt-BR')],
+      [],
+      ['#', 'Tipo', 'Data / Hora', 'Colaborador', 'Posto', 'Motivo', 'Horário', 'Quem Faltou', 'Valor (R$)']
+    ];
+
+    items.forEach(function(r, i) {
+      var isBico = r.tipo === 'bico';
+      var dtStr = r.dataHora
+        ? new Date(r.dataHora).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+        : '—';
+      rows.push([
+        i + 1,
+        isBico ? 'Bico Fixo' : 'FT',
+        dtStr,
+        isBico ? (r.colaborador||'—') : (r.substituto||'—'),
+        r.posto || '—',
+        isBico ? 'Bico Fixo' : (r.motivo||'—'),
+        r.horario || '—',
+        (!isBico && r.quemFaltou) ? r.quemFaltou : '—',
+        r.valor || 0
+      ]);
+    });
+
+    var totalValor = items.reduce(function(s,r){ return s+(r.valor||0); }, 0);
+    rows.push([]);
+    rows.push(['', '', '', '', '', '', '', 'TOTAL', totalValor]);
+
+    var ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:4},{wch:10},{wch:18},{wch:22},{wch:24},{wch:22},{wch:18},{wch:20},{wch:12}];
+    ws['!merges'] = [{s:{r:0,c:0},e:{r:0,c:8}}];
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Dashboard Geral');
+    XLSX.writeFile(wb, 'DashboardGeral_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.xlsx');
+    showToast('📊 Excel gerado com sucesso!', 'success');
+  }
+
+  // ── Inicialização do Dashboard Geral ────────────
+  function initDashboardGeral() {
+    fillGeralSelects();
+
+    // Fonte
+    document.querySelectorAll('.dash-pill[data-geral-fonte]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        geralFonte = btn.dataset.geralFonte;
+        document.querySelectorAll('.dash-pill[data-geral-fonte]').forEach(function(b) {
+          b.classList.toggle('active', b.dataset.geralFonte === geralFonte);
+        });
+        renderGeralList();
+      });
+    });
+
+    // Período
+    document.querySelectorAll('.dash-pill[data-geral-period]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        geralPeriod = btn.dataset.geralPeriod;
+        document.querySelectorAll('.dash-pill[data-geral-period]').forEach(function(b) {
+          b.classList.toggle('active', b.dataset.geralPeriod === geralPeriod);
+        });
+        renderGeralList();
+      });
+    });
+
+    // Select colaborador
+    var selColab = document.getElementById('geralSelectColaborador');
+    if (selColab) selColab.addEventListener('change', function() {
+      geralColabFiltro = selColab.value;
+      renderGeralList();
+    });
+
+    // Select posto
+    var selPosto = document.getElementById('geralSelectPosto');
+    if (selPosto) selPosto.addEventListener('change', function() {
+      geralPostoFiltro = selPosto.value;
+      renderGeralList();
+    });
+
+    // Select motivo
+    var selMotivo = document.getElementById('geralSelectMotivo');
+    if (selMotivo) selMotivo.addEventListener('change', function() {
+      geralMotivoFiltro = selMotivo.value;
+      renderGeralList();
+    });
+
+    // Exportações
+    var btnPDF = document.getElementById('btnGeralPDF');
+    if (btnPDF) btnPDF.addEventListener('click', exportarGeralPDF);
+    var btnXLS = document.getElementById('btnGeralExcel');
+    if (btnXLS) btnXLS.addEventListener('click', exportarGeralExcel);
+  }
+
   // ── Callback chamado após sincronização ─────────
   window.onSyncComplete = function(fromSnapshot) {
     // Re-renderiza histórico e dashboard com dados atualizados
@@ -3748,6 +4377,8 @@
     if (histTab && !histTab.classList.contains('hidden')) renderHistorico();
     var dashTab = document.getElementById('tab-dashboard');
     if (dashTab && !dashTab.classList.contains('hidden')) renderDashboard();
+    var geralTab = document.getElementById('tab-geral');
+    if (geralTab && !geralTab.classList.contains('hidden')) renderGeralList();
     // Só mostra toast quando vier de flush manual (não de snapshot remoto contínuo)
     if (!fromSnapshot) showToast('☁️ Dados sincronizados com Firebase!', 'success');
   };
