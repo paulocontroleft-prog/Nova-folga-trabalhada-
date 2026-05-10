@@ -1416,7 +1416,7 @@
     <div class="modal-icon">🚫</div>
     <div class="modal-title">FT já registrada!</div>
     <div class="modal-body">
-      <strong id="modal-colab-nome"></strong> já possui uma FT lançada nesta data e horário.
+      <strong id="modal-colab-nome"></strong> já possui uma FT lançada neste mesmo turno nesta data.
       <div class="modal-detail">
         <span class="modal-detail-icon">📅</span>
         <span id="modal-detalhe"></span>
@@ -1807,24 +1807,31 @@
     }
 
     // ── Verificação de duplicata ──────────────────────
-    // Bloqueia se mesmo colaborador + mesma data (dia) + mesmo horário já existir
+    // Regra: bloqueia mesmo colaborador + mesmo turno (horário exato),
+    // independente do posto. Turnos diferentes no mesmo dia são permitidos.
     var ftsExist = JSON.parse(localStorage.getItem('ft_registros') || '[]');
     var dataLancamento = dataHora.slice(0, 10); // 'YYYY-MM-DD'
 
     var duplicata = ftsExist.find(function(ft) {
-      var ftData = (ft.dataHora || '').slice(0, 10);
-      return ft.substituto === substituto
-          && ftData === dataLancamento
-          && ft.horario === horario;
+      // Normaliza o nome para comparação sem sensibilidade a maiúsculas/espaços
+      var mesmaPessoa = (ft.substituto || '').trim().toLowerCase() ===
+                        (substituto   || '').trim().toLowerCase();
+      // Usa a data do campo dataHora do registro existente (slice 10 chars = YYYY-MM-DD)
+      var ftData = (ft.dataHora || ft.criadoEm || '').slice(0, 10);
+      var mesmaData   = ftData === dataLancamento;
+      // Compara o turno exato (ex: "06:00 – 18:00" === "06:00 – 18:00")
+      var mesmoTurno  = (ft.horario || '').trim() === (horario || '').trim();
+
+      return mesmaPessoa && mesmaData && mesmoTurno;
     });
 
     if (duplicata) {
-      var dtFmt = new Date(duplicata.dataHora).toLocaleDateString('pt-BR', {
+      var dtFmt = new Date(dataLancamento + 'T12:00:00').toLocaleDateString('pt-BR', {
         day: '2-digit', month: '2-digit', year: 'numeric'
       });
       document.getElementById('modal-colab-nome').textContent = substituto;
       document.getElementById('modal-detalhe').textContent =
-        'Data: ' + dtFmt + '  ·  Horário: ' + horario + '  ·  Posto: ' + (duplicata.posto || '—');
+        'Data: ' + dtFmt + '  ·  Turno: ' + horario + '  ·  Posto: ' + (duplicata.posto || '—');
       document.getElementById('modalDuplicata').classList.add('show');
       return;
     }
