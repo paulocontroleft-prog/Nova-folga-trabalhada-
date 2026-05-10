@@ -2921,44 +2921,77 @@
 
     var titulos = { todos: 'RELATORIO DE CADASTROS', postos: 'RELATORIO DE POSTOS', colaboradores: 'RELATORIO DE COLABORADORES' };
 
-    docPdf.setFillColor(13, 17, 23); docPdf.rect(0, 0, 210, 297, 'F');
-    docPdf.setFillColor(28, 34, 48); docPdf.rect(0, 0, 210, 46, 'F');
-    docPdf.setDrawColor(247, 183, 49); docPdf.setLineWidth(0.8); docPdf.line(0, 46, 210, 46);
-    // Logo PJ — hexágono maior
-    var chcx = 22, chcy = 23, chr = 17;
+    docPdf.setFillColor(10, 14, 20); docPdf.rect(0, 0, 210, 297, 'F');
+    docPdf.setFillColor(22, 30, 48); docPdf.rect(0, 0, 210, 46, 'F');
+    docPdf.setFillColor(18, 25, 40); docPdf.rect(0, 30, 210, 16, 'F');
+    docPdf.setDrawColor(247, 183, 49); docPdf.setLineWidth(1.2); docPdf.line(0, 46, 210, 46);
+    docPdf.setDrawColor(0, 200, 248); docPdf.setLineWidth(0.3); docPdf.line(0, 45.2, 210, 45.2);
+
+    // Logo PJ — hexágono aprimorado
+    var chcx = 23, chcy = 23, chr = 18;
+    // Halo/sombra
+    var chexShadow = [];
+    for (var csi = 0; csi < 6; csi++) {
+      var csang = Math.PI / 180 * (60 * csi - 30);
+      chexShadow.push([chcx + (chr + 2.5) * Math.cos(csang), chcy + (chr + 2.5) * Math.sin(csang)]);
+    }
+    docPdf.setFillColor(0, 100, 160); docPdf.setDrawColor(0, 100, 160); docPdf.setLineWidth(0);
+    docPdf.lines(
+      chexShadow.slice(1).map(function(p, i) { return [p[0] - chexShadow[i][0], p[1] - chexShadow[i][1]]; })
+        .concat([[chexShadow[0][0] - chexShadow[5][0], chexShadow[0][1] - chexShadow[5][1]]]),
+      chexShadow[0][0], chexShadow[0][1], [1,1], 'F', true
+    );
+    // Hexágono principal
     var chexPts = [];
     for (var chi = 0; chi < 6; chi++) {
       var chang = Math.PI / 180 * (60 * chi - 30);
       chexPts.push([chcx + chr * Math.cos(chang), chcy + chr * Math.sin(chang)]);
     }
-    docPdf.setFillColor(13, 56, 120);
-    docPdf.setDrawColor(0, 200, 248); docPdf.setLineWidth(1.0);
+    docPdf.setFillColor(10, 42, 100);
+    docPdf.setDrawColor(0, 220, 255); docPdf.setLineWidth(1.4);
     docPdf.lines(
       chexPts.slice(1).map(function(p, i) { return [p[0] - chexPts[i][0], p[1] - chexPts[i][1]]; })
         .concat([[chexPts[0][0] - chexPts[5][0], chexPts[0][1] - chexPts[5][1]]]),
       chexPts[0][0], chexPts[0][1], [1,1], 'FD', true
     );
-    docPdf.setFillColor(20, 80, 180);
-    docPdf.circle(chcx, chcy - 4, 4, 'F');
-    docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(11); docPdf.setTextColor(255, 255, 255);
-    docPdf.text('P', chcx - 3.5, chcy + 1.5);
-    docPdf.setTextColor(0, 234, 255);
-    docPdf.text('J', chcx + 2.5, chcy + 1.5);
-    docPdf.setDrawColor(0, 200, 248); docPdf.setLineWidth(0.6);
-    docPdf.line(chcx - 5, chcy + 4, chcx + 5, chcy + 4);
-    docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(9.5); docPdf.setTextColor(0, 200, 248);
-    docPdf.text('PJ TECNOLOGIA', 43, 17);
-    docPdf.setFontSize(9); docPdf.setTextColor(200, 220, 240);
-    docPdf.text('E SISTEMAS', 43, 24);
-    docPdf.setFont('helvetica', 'normal'); docPdf.setFontSize(5.5); docPdf.setTextColor(0, 160, 200);
-    docPdf.text('Inovacao que conecta. Tecnologia que transforma.', 43, 31);
+    // Reflexo interno
+    var chexInner = [];
+    for (var cii = 0; cii < 6; cii++) {
+      var ciang = Math.PI / 180 * (60 * cii - 30);
+      chexInner.push([chcx + (chr * 0.6) * Math.cos(ciang), chcy - 3 + (chr * 0.4) * Math.sin(ciang)]);
+    }
+    docPdf.setFillColor(20, 80, 180); docPdf.setDrawColor(20, 80, 180); docPdf.setLineWidth(0);
+    docPdf.lines(
+      chexInner.slice(1).map(function(p, i) { return [p[0] - chexInner[i][0], p[1] - chexInner[i][1]]; })
+        .concat([[chexInner[0][0] - chexInner[5][0], chexInner[0][1] - chexInner[5][1]]]),
+      chexInner[0][0], chexInner[0][1], [1,1], 'F', true
+    );
+    // Vértices ciano
+    docPdf.setFillColor(0, 220, 255);
+    chexPts.forEach(function(pt) { docPdf.circle(pt[0], pt[1], 0.9, 'F'); });
+    // Monograma "PJ"
+    docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(14); docPdf.setTextColor(255, 255, 255);
+    docPdf.text('P', chcx - 4.2, chcy + 2.8);
+    docPdf.setTextColor(0, 230, 255);
+    docPdf.text('J', chcx + 2.8, chcy + 2.8);
+    docPdf.setDrawColor(0, 220, 255); docPdf.setLineWidth(0.8);
+    docPdf.line(chcx - 6, chcy + 5.5, chcx + 6, chcy + 5.5);
+    // Texto da marca
+    docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(10.5); docPdf.setTextColor(0, 220, 255);
+    docPdf.text('PJ TECNOLOGIA', 46, 16);
+    docPdf.setFontSize(9.5); docPdf.setTextColor(210, 230, 255);
+    docPdf.text('E SISTEMAS', 46, 24);
+    docPdf.setDrawColor(0, 150, 200); docPdf.setLineWidth(0.3);
+    docPdf.line(46, 26.5, 110, 26.5);
+    docPdf.setFont('helvetica', 'normal'); docPdf.setFontSize(6); docPdf.setTextColor(0, 190, 230);
+    docPdf.text('Inovacao que conecta. Tecnologia que transforma.', 46, 32);
     // Linha separadora vertical
-    docPdf.setDrawColor(60, 80, 110); docPdf.setLineWidth(0.4);
-    docPdf.line(118, 5, 118, 41);
-    // Título centralizado à direita
-    docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(14); docPdf.setTextColor(247, 183, 49);
+    docPdf.setDrawColor(60, 80, 120); docPdf.setLineWidth(0.5);
+    docPdf.line(118, 4, 118, 42);
+    // Título centralizado à direita — maior contraste
+    docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(14); docPdf.setTextColor(255, 200, 40);
     docPdf.text(titulos[filtroRelatorio], 163, 18, { align: 'center' });
-    docPdf.setFontSize(8); docPdf.setTextColor(139, 151, 176);
+    docPdf.setFontSize(8); docPdf.setTextColor(170, 185, 210);
     docPdf.text('Gerado em: ' + dataHoje + ' as ' + horaHoje, 163, 26, { align: 'center' });
 
     var y = 50;
@@ -2971,7 +3004,7 @@
       docPdf.text(String(colabs.length), 55, y + 12, { align: 'center' });
       docPdf.setFontSize(8); docPdf.setTextColor(139, 151, 176);
       docPdf.text('COLABORADORES', 55, y + 18, { align: 'center' });
-      docPdf.setFontSize(20); docPdf.setTextColor(247, 183, 49);
+      docPdf.setFontSize(20); docPdf.setTextColor(255, 200, 40);
       docPdf.text(String(psts.length), 155, y + 12, { align: 'center' });
       docPdf.setFontSize(8); docPdf.setTextColor(139, 151, 176);
       docPdf.text('POSTOS', 155, y + 18, { align: 'center' });
@@ -2985,7 +3018,7 @@
       y += 34;
     } else {
       docPdf.setFillColor(22, 27, 34); docPdf.roundedRect(55, y, 100, 24, 3, 3, 'F');
-      docPdf.setFontSize(20); docPdf.setTextColor(247, 183, 49); docPdf.setFont('helvetica', 'bold');
+      docPdf.setFontSize(20); docPdf.setTextColor(255, 200, 40); docPdf.setFont('helvetica', 'bold');
       docPdf.text(String(psts.length), 105, y + 12, { align: 'center' });
       docPdf.setFontSize(8); docPdf.setTextColor(139, 151, 176);
       docPdf.text('POSTOS DE TRABALHO', 105, y + 18, { align: 'center' });
@@ -3013,7 +3046,7 @@
     if (psts.length > 0) {
       if (y > 260) { docPdf.addPage(); docPdf.setFillColor(13,17,23); docPdf.rect(0,0,210,297,'F'); y = 20; }
       docPdf.setFillColor(34, 28, 10); docPdf.rect(10, y, 190, 10, 'F');
-      docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(10); docPdf.setTextColor(247, 183, 49);
+      docPdf.setFont('helvetica', 'bold'); docPdf.setFontSize(10); docPdf.setTextColor(255, 200, 40);
       docPdf.text('POSTOS DE TRABALHO', 15, y + 7);
       docPdf.setTextColor(139, 151, 176); docPdf.setFontSize(8);
       docPdf.text('Total: ' + psts.length, 185, y + 7, { align: 'right' });
@@ -3455,66 +3488,111 @@
 
   // ── Helper: cabeçalho PDF reutilizável ───────────────
   function pdfCabecalho(doc, W, titulo, subtitulo, badges) {
-    doc.setFillColor(13, 17, 23);
+    // Fundo escuro completo
+    doc.setFillColor(10, 14, 20);
     doc.rect(0, 0, W, 297, 'F');
-    doc.setFillColor(26, 33, 51);
+    // Cabeçalho com gradiente simulado (duas faixas)
+    doc.setFillColor(22, 30, 48);
     doc.rect(0, 0, W, 44, 'F');
-    doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.8);
+    doc.setFillColor(18, 25, 40);
+    doc.rect(0, 30, W, 14, 'F');
+    // Linha de destaque âmbar embaixo do cabeçalho
+    doc.setDrawColor(247, 183, 49); doc.setLineWidth(1.2);
     doc.line(0, 44, W, 44);
+    // Linha de acento ciano fina logo acima
+    doc.setDrawColor(0, 200, 248); doc.setLineWidth(0.3);
+    doc.line(0, 43.2, W, 43.2);
 
-    // Logo PJ — lado esquerdo do cabeçalho (aumentada)
-    // Hexágono: centro em (22, 22), raio ~17mm → cobre y=5..39, x=7..37
-    var hcx = 22, hcy = 22, hr = 17;
+    // ── Logo PJ aprimorado ─────────────────────────────────
+    var hcx = 23, hcy = 22, hr = 18;
+
+    // Sombra/halo do hexágono
+    doc.setFillColor(0, 100, 160);
+    doc.setDrawColor(0, 100, 160); doc.setLineWidth(0);
+    var hexShadow = [];
+    for (var si = 0; si < 6; si++) {
+      var sang = Math.PI / 180 * (60 * si - 30);
+      hexShadow.push([hcx + (hr + 2.5) * Math.cos(sang), hcy + (hr + 2.5) * Math.sin(sang)]);
+    }
+    doc.lines(
+      hexShadow.slice(1).map(function(p, i) { return [p[0] - hexShadow[i][0], p[1] - hexShadow[i][1]]; })
+        .concat([[hexShadow[0][0] - hexShadow[5][0], hexShadow[0][1] - hexShadow[5][1]]]),
+      hexShadow[0][0], hexShadow[0][1], [1,1], 'F', true
+    );
+
+    // Fundo do hexágono principal (azul profundo)
     var hexPts = [];
     for (var hi = 0; hi < 6; hi++) {
       var ang = Math.PI / 180 * (60 * hi - 30);
       hexPts.push([hcx + hr * Math.cos(ang), hcy + hr * Math.sin(ang)]);
     }
-    // Fundo do hexágono
-    doc.setFillColor(13, 56, 120);
-    doc.setDrawColor(0, 200, 248); doc.setLineWidth(1.0);
+    doc.setFillColor(10, 42, 100);
+    doc.setDrawColor(0, 220, 255); doc.setLineWidth(1.4);
     doc.lines(
       hexPts.slice(1).map(function(p, i) { return [p[0] - hexPts[i][0], p[1] - hexPts[i][1]]; })
         .concat([[hexPts[0][0] - hexPts[5][0], hexPts[0][1] - hexPts[5][1]]]),
       hexPts[0][0], hexPts[0][1], [1,1], 'FD', true
     );
-    // Brilho interno
+
+    // Reflexo interno superior (brilho)
+    var hexInner = [];
+    for (var ii = 0; ii < 6; ii++) {
+      var iang = Math.PI / 180 * (60 * ii - 30);
+      hexInner.push([hcx + (hr * 0.6) * Math.cos(iang), hcy - 3 + (hr * 0.4) * Math.sin(iang)]);
+    }
     doc.setFillColor(20, 80, 180);
-    doc.circle(hcx, hcy - 4, 4, 'F');
-    // Monograma "PJ"
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
-    doc.text('P', hcx - 3.5, hcy + 1.5);
-    doc.setTextColor(0, 234, 255);
-    doc.text('J', hcx + 2.5, hcy + 1.5);
-    // Sublinhado decorativo
-    doc.setDrawColor(0, 200, 248); doc.setLineWidth(0.6);
-    doc.line(hcx - 5, hcy + 4, hcx + 5, hcy + 4);
-    // Texto da marca ao lado do hexágono
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(0, 200, 248);
-    doc.text('PJ TECNOLOGIA', 43, 16);
-    doc.setFontSize(9); doc.setTextColor(200, 220, 240);
-    doc.text('E SISTEMAS', 43, 23);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(5.5); doc.setTextColor(0, 160, 200);
-    doc.text('Inovacao que conecta. Tecnologia que transforma.', 43, 30);
+    doc.setDrawColor(20, 80, 180); doc.setLineWidth(0);
+    doc.lines(
+      hexInner.slice(1).map(function(p, i) { return [p[0] - hexInner[i][0], p[1] - hexInner[i][1]]; })
+        .concat([[hexInner[0][0] - hexInner[5][0], hexInner[0][1] - hexInner[5][1]]]),
+      hexInner[0][0], hexInner[0][1], [1,1], 'F', true
+    );
+
+    // Vértices ciano nos cantos do hexágono
+    doc.setFillColor(0, 220, 255);
+    hexPts.forEach(function(pt) { doc.circle(pt[0], pt[1], 0.9, 'F'); });
+
+    // Monograma "PJ" centralizado e maior
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text('P', hcx - 4.2, hcy + 2.8);
+    doc.setTextColor(0, 230, 255);
+    doc.text('J', hcx + 2.8, hcy + 2.8);
+
+    // Sublinhado ciano decorativo
+    doc.setDrawColor(0, 220, 255); doc.setLineWidth(0.8);
+    doc.line(hcx - 6, hcy + 5.5, hcx + 6, hcy + 5.5);
+
+    // ── Texto da marca ao lado do hexágono ────────────────
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(0, 220, 255);
+    doc.text('PJ TECNOLOGIA', 46, 15);
+    doc.setFontSize(9.5); doc.setTextColor(210, 230, 255);
+    doc.text('E SISTEMAS', 46, 23);
+    // Linha separadora horizontal fina
+    doc.setDrawColor(0, 150, 200); doc.setLineWidth(0.3);
+    doc.line(46, 25.5, 108, 25.5);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setTextColor(0, 190, 230);
+    doc.text('Inovacao que conecta. Tecnologia que transforma.', 46, 31);
 
     // Separador vertical
-    doc.setDrawColor(50, 70, 100); doc.setLineWidth(0.4);
-    doc.line(115, 5, 115, 40);
+    doc.setDrawColor(60, 80, 120); doc.setLineWidth(0.5);
+    doc.line(115, 4, 115, 41);
 
-    // Título e subtítulo à direita
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(247, 183, 49);
+    // Título e subtítulo à direita — maior contraste
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(13.5); doc.setTextColor(255, 200, 40);
     doc.text(titulo, (W + 115) / 2, 13, { align: 'center' });
-    doc.setFontSize(7.5); doc.setTextColor(139, 151, 176); doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5); doc.setTextColor(170, 185, 210); doc.setFont('helvetica', 'normal');
     doc.text(subtitulo, (W + 115) / 2, 20, { align: 'center' });
 
     var bw = Math.floor((W - 115 - 14) / badges.length);
     var bx = 117; var by = 27;
     badges.forEach(function(b) {
-      doc.setFillColor(30, 40, 60);
-      doc.roundedRect(bx, by - 4, bw - 3, 12, 2, 2, 'F');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(5.5); doc.setTextColor(139, 151, 176);
+      doc.setFillColor(35, 48, 75);
+      doc.setDrawColor(70, 100, 150); doc.setLineWidth(0.3);
+      doc.roundedRect(bx, by - 4, bw - 3, 12, 2, 2, 'FD');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(5.5); doc.setTextColor(160, 180, 210);
       doc.text(b.label, bx + (bw - 3) / 2, by + 0.5, { align: 'center' });
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(232, 237, 245);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(255, 210, 60);
       var val = b.value.length > 18 ? b.value.slice(0, 17) + '…' : b.value;
       doc.text(val, bx + (bw - 3) / 2, by + 6, { align: 'center' });
       bx += bw;
@@ -3618,11 +3696,12 @@
       doc.setDrawColor(180, 190, 210); doc.setLineWidth(0.3);
       doc.line(10, y + 10, 200, y + 10);
       doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(30, 50, 100);
-      doc.text('#',         15, y + 6.5);
-      doc.text('Data / Hora', 22, y + 6.5);
-      doc.text('Posto',    80, y + 6.5);
-      doc.text('Tipo/Motivo', 138, y + 6.5);
-      doc.text('Valor',   197, y + 6.5, { align: 'right' });
+      doc.text('#',            15, y + 6.5);
+      doc.text('Data / Hora',  22, y + 6.5);
+      doc.text('Posto',        68, y + 6.5);
+      doc.text('Tipo/Motivo', 112, y + 6.5);
+      doc.text('Ausente',     158, y + 6.5);
+      doc.text('Valor',       197, y + 6.5, { align: 'right' });
       y += 11;
 
       var ftsOrdenadas = ftsFiltradas.slice().sort(function(a, b) {
@@ -3632,26 +3711,43 @@
       ftsOrdenadas.forEach(function(r, i) {
         if (y > 272) { y = pdfNovaPageClara(doc, W); }
         var even = i % 2 === 0;
-        // Linhas alternadas em tons claros
         doc.setFillColor(even ? 255 : 245, even ? 255 : 248, even ? 255 : 255);
         doc.rect(10, y - 2, 190, 9, 'F');
-        // Borda inferior suave
         doc.setDrawColor(220, 225, 235); doc.setLineWidth(0.2);
         doc.line(10, y + 7, 200, y + 7);
         var dtStr = r.dataHora
           ? new Date(r.dataHora).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
           : '—';
-        var postoStr  = (r.posto  || '—').length > 22 ? (r.posto  || '—').slice(0,21)+'…' : (r.posto  || '—');
-        var tipoStr   = r.tipo === 'bico' ? 'Bico Fixo' : (r.motivo || '—');
-        if (tipoStr.length > 20) tipoStr = tipoStr.slice(0,19)+'…';
+        var postoStr = (r.posto || '—').length > 16 ? (r.posto || '—').slice(0,15)+'…' : (r.posto || '—');
+        var tipoStr  = r.tipo === 'bico' ? 'Bico Fixo' : (r.motivo || '—');
+        if (tipoStr.length > 16) tipoStr = tipoStr.slice(0,15)+'…';
+        // Montar label do ausente
+        var ausenteStr = '—';
+        if (r.quemFaltou && r.tipo !== 'bico') {
+          var m = r.motivo || '';
+          var mesma = r.quemFaltou.trim().toLowerCase() === (r.substituto || '').trim().toLowerCase();
+          var prefixo = m === 'Cobertura de Férias'
+            ? (mesma ? 'Férias' : 'Cob. Férias')
+            : m === 'Atestado'   ? 'Atestado'
+            : m === 'Suspensão'  ? 'Suspensão'
+            : m === 'Afastamento'? 'Afastamento'
+            : m === 'Folga do Vigia' ? 'Folga'
+            : m === 'Remanejamento Interno' ? 'Remanej.'
+            : m === 'Falta de Efetivo'      ? 'Falta Efet.'
+            : 'Faltou';
+          var nomeAus = r.quemFaltou.length > 12 ? r.quemFaltou.slice(0,11)+'…' : r.quemFaltou;
+          ausenteStr = prefixo + ': ' + nomeAus;
+        }
         doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(160, 170, 185);
         doc.text(String(i + 1).padStart(2, '0'), 14, y + 4.5);
         doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 50, 70);
-        doc.text(dtStr,     22, y + 4.5);
+        doc.text(dtStr,      22, y + 4.5);
         doc.setTextColor(r.tipo === 'bico' ? 120 : 30, r.tipo === 'bico' ? 60 : 80, r.tipo === 'bico' ? 180 : 160);
-        doc.text(postoStr,  80, y + 4.5);
+        doc.text(postoStr,   68, y + 4.5);
         doc.setTextColor(r.tipo === 'bico' ? 120 : 160, r.tipo === 'bico' ? 40 : 90, r.tipo === 'bico' ? 180 : 20);
-        doc.text(tipoStr, 138, y + 4.5);
+        doc.text(tipoStr,   112, y + 4.5);
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(180, 80, 20);
+        doc.text(ausenteStr,158, y + 4.5);
         doc.setFont('helvetica', 'bold'); doc.setTextColor(20, 120, 60);
         doc.text('R$ ' + (r.valor || 0).toFixed(2).replace('.', ','), 197, y + 4.5, { align: 'right' });
         y += 9;
@@ -3702,7 +3798,7 @@
       var data = buildDatasetAll(ftsFiltradas);
       doc.setFillColor(22, 34, 52); doc.rect(10, y, 190, 10, 'F');
       doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.3); doc.line(10, y + 10, 200, y + 10);
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(247, 183, 49);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(255, 200, 40);
       doc.text('#',              15, y + 6.5);
       doc.text(viewLabel,        25, y + 6.5);
       doc.text('Qtd.',          148, y + 6.5, { align: 'right' });
@@ -3721,18 +3817,18 @@
         doc.text(nomeShort, 25, y + 4.5);
         doc.setTextColor(38, 222, 129); doc.setFont('helvetica', 'bold');
         doc.text(item.qtd + ' lançamento' + (item.qtd !== 1 ? 's' : ''), 148, y + 4.5, { align: 'right' });
-        doc.setTextColor(247, 183, 49);
+        doc.setTextColor(255, 200, 40);
         doc.text('R$ ' + item.valor.toFixed(2).replace('.', ','), 197, y + 4.5, { align: 'right' });
         totalValorGeral += item.valor; y += 9;
       });
       y += 4;
       doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.4); doc.line(10, y, 200, y); y += 6;
       doc.setFillColor(34, 40, 28); doc.rect(10, y - 3, 190, 10, 'F');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(247, 183, 49);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 200, 40);
       doc.text('TOTAL GERAL', 25, y + 3.5);
       doc.setTextColor(38, 222, 129);
       doc.text(String(totalFTs) + ' lançamentos', 148, y + 3.5, { align: 'right' });
-      doc.setTextColor(247, 183, 49);
+      doc.setTextColor(255, 200, 40);
       doc.text('R$ ' + totalValorGeral.toFixed(2).replace('.', ','), 197, y + 3.5, { align: 'right' });
     }
 
@@ -3803,7 +3899,7 @@
     if (modoDetalhe) {
       rows.push(['Colaborador: ' + dashNomeFiltro]);
       rows.push([]);
-      rows.push(['#', 'Data / Hora', 'Posto', 'Tipo/Motivo', 'Qtd.', 'Valor a Receber (R$)']);
+      rows.push(['#', 'Data / Hora', 'Posto', 'Tipo/Motivo', 'Ausente', 'Valor a Receber (R$)']);
       var sorted = ftsFiltradas.slice().sort(function(a, b) {
         return new Date(a.dataHora || a.criadoEm) - new Date(b.dataHora || b.criadoEm);
       });
@@ -3812,11 +3908,26 @@
           ? new Date(r.dataHora).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
           : '—';
         var tipoMotivo = r.tipo === 'bico' ? 'Bico Fixo' : (r.motivo || '—');
-        rows.push([i + 1, dtStr, r.posto || '—', tipoMotivo, 1, r.valor || 0]);
+        var ausenteStr = '—';
+        if (r.quemFaltou && r.tipo !== 'bico') {
+          var m = r.motivo || '';
+          var mesma = r.quemFaltou.trim().toLowerCase() === (r.substituto || '').trim().toLowerCase();
+          var prefixo = m === 'Cobertura de Férias'
+            ? (mesma ? 'Férias' : 'Cobertura de Férias')
+            : m === 'Atestado'              ? 'Atestado'
+            : m === 'Suspensão'             ? 'Suspensão'
+            : m === 'Afastamento'           ? 'Afastamento'
+            : m === 'Folga do Vigia'        ? 'Folga'
+            : m === 'Remanejamento Interno' ? 'Remanejamento'
+            : m === 'Falta de Efetivo'      ? 'Falta de Efetivo'
+            : 'Faltou';
+          ausenteStr = prefixo + ': ' + r.quemFaltou;
+        }
+        rows.push([i + 1, dtStr, r.posto || '—', tipoMotivo, ausenteStr, r.valor || 0]);
       });
       rows.push([]);
-      rows.push(['', '', '', 'TOTAL A RECEBER', totalFTs, totalValor]);
-      cols = [{ wch: 4 }, { wch: 20 }, { wch: 28 }, { wch: 24 }, { wch: 10 }, { wch: 22 }];
+      rows.push(['', '', '', 'TOTAL A RECEBER', '', totalValor]);
+      cols = [{ wch: 4 }, { wch: 20 }, { wch: 28 }, { wch: 22 }, { wch: 28 }, { wch: 22 }];
     } else {
       rows.push(['#', viewLabel, 'Qtd. Lançamentos', 'Valor a Receber (R$)']);
       var data = buildDatasetAll(ftsFiltradas);
