@@ -2684,9 +2684,38 @@
           '<span class="hist-tag hist-tag-motivo">📌 ' + escHtml(r.motivo || '—') + '</span>' +
           '<span class="hist-tag hist-tag-horario">🕐 ' + escHtml(r.horario || '—') + '</span>' +
           tipoTag;
-        faltouHtml = r.quemFaltou
-          ? '<span class="hist-quem-faltou">🚨 Faltou: ' + escHtml(r.quemFaltou) + '</span>'
-          : '';
+        (function() {
+          if (!r.quemFaltou) { faltouHtml = ''; return; }
+          var m = r.motivo || '';
+          var mesma = r.quemFaltou.trim().toLowerCase() === (r.substituto || '').trim().toLowerCase();
+          var label, icone, cor;
+          if (m === 'Cobertura de Férias') {
+            icone = '🏖️'; cor = 'color:var(--accent3);';
+            label = mesma ? 'Férias' : 'Cobertura de Férias';
+          } else if (m === 'Atestado') {
+            icone = '🏥'; cor = 'color:var(--danger);';
+            label = 'Atestado';
+          } else if (m === 'Suspensão') {
+            icone = '🚫'; cor = 'color:var(--danger);';
+            label = 'Suspensão';
+          } else if (m === 'Afastamento') {
+            icone = '🩺'; cor = 'color:var(--danger);';
+            label = 'Afastamento';
+          } else if (m === 'Folga do Vigia') {
+            icone = '😴'; cor = 'color:var(--accent1);';
+            label = 'Folga';
+          } else if (m === 'Remanejamento Interno') {
+            icone = '🔀'; cor = 'color:#a55eea;';
+            label = 'Remanejamento';
+          } else if (m === 'Falta de Efetivo') {
+            icone = '⚠️'; cor = 'color:var(--accent4);';
+            label = 'Falta de Efetivo';
+          } else {
+            icone = '🚨'; cor = 'color:var(--danger);';
+            label = 'Faltou';
+          }
+          faltouHtml = '<span class="hist-quem-faltou" style="' + cor + '">' + icone + ' ' + label + ': ' + escHtml(r.quemFaltou) + '</span>';
+        })();
       }
 
       return '<div class="hist-card" style="background:' + cor + ';border-color:' + borda + ';" data-id="' + r.id + '" data-tipo="' + r.tipo + '">' +
