@@ -1196,6 +1196,106 @@
   .btn-edit-save:hover { opacity: .9; }
   .btn-edit-save:active { transform: scale(.97); }
 
+  /* ── Campo de horário customizado ── */
+  .horario-custom-wrap {
+    margin-top: 8px;
+    display: none;
+  }
+  .horario-custom-wrap.visible { display: block; }
+  .horario-custom-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .horario-custom-row input[type="text"] {
+    flex: 1;
+    background: var(--input-bg);
+    border: 1.5px solid var(--accent3);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: .92rem;
+    padding: 11px 14px;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(69,170,242,.12);
+  }
+  .horario-custom-row input[type="text"]:focus {
+    border-color: var(--accent1);
+    box-shadow: 0 0 0 3px rgba(247,183,49,.18);
+  }
+  .btn-horario-add {
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent3) 0%, #1a6fc4 100%);
+    color: #fff;
+    font-family: 'Exo 2', sans-serif;
+    font-size: .82rem;
+    font-weight: 700;
+    padding: 11px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity .2s, transform .15s;
+    flex-shrink: 0;
+  }
+  .btn-horario-add:hover { opacity: .88; }
+  .btn-horario-add:active { transform: scale(.97); }
+  .btn-horario-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 7px;
+    background: none;
+    border: 1.5px dashed rgba(69,170,242,.4);
+    border-radius: 8px;
+    color: var(--accent3);
+    font-family: 'Exo 2', sans-serif;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .3px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-horario-toggle:hover {
+    background: rgba(69,170,242,.08);
+    border-color: var(--accent3);
+  }
+  .horario-saved-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .horario-saved-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(69,170,242,.12);
+    border: 1px solid rgba(69,170,242,.3);
+    border-radius: 20px;
+    color: var(--accent3);
+    font-size: .72rem;
+    font-weight: 700;
+    padding: 4px 10px 4px 12px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .horario-saved-chip:hover { background: rgba(69,170,242,.22); }
+  .horario-saved-chip .chip-del {
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: .75rem;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    opacity: .7;
+    transition: opacity .2s;
+  }
+  .horario-saved-chip .chip-del:hover { opacity: 1; }
+
   @media (min-width: 500px) {
     header h1 { font-size: 1.6rem; }
     .tabs-wrapper { padding: 0; }
@@ -1325,7 +1425,19 @@
             <option>Plantão 12h Diurno</option>
             <option>Plantão 12h Noturno</option>
             <option>Plantão 24h</option>
+            <option>17:00 – 07:00</option>
+            <option>18:00 – 07:00</option>
+            <option>18:00 – 08:00</option>
+            <option>18:00 – 08:30</option>
           </select>
+          <button type="button" class="btn-horario-toggle" id="btn-toggle-horario-ft">&#x2795; Adicionar outro horário</button>
+          <div class="horario-custom-wrap" id="horario-custom-ft">
+            <div class="horario-custom-row">
+              <input type="text" id="horario-custom-input-ft" placeholder="Ex: 05:00 – 11:00 ou Escala Especial" maxlength="40">
+              <button type="button" class="btn-horario-add" id="btn-horario-save-ft">&#x2714; Salvar</button>
+            </div>
+            <div class="horario-saved-list" id="horario-saved-ft"></div>
+          </div>
         </div>
 
         <div class="section-sep">Colaboradores</div>
@@ -1721,7 +1833,19 @@
             <option>Plantão 12h Diurno</option>
             <option>Plantão 12h Noturno</option>
             <option>Plantão 24h</option>
+            <option>17:00 – 07:00</option>
+            <option>18:00 – 07:00</option>
+            <option>18:00 – 08:00</option>
+            <option>18:00 – 08:30</option>
           </select>
+          <button type="button" class="btn-horario-toggle" id="btn-toggle-horario-bico">&#x2795; Adicionar outro horário</button>
+          <div class="horario-custom-wrap" id="horario-custom-bico">
+            <div class="horario-custom-row">
+              <input type="text" id="horario-custom-input-bico" placeholder="Ex: 05:00 – 11:00 ou Escala Especial" maxlength="40">
+              <button type="button" class="btn-horario-add" id="btn-horario-save-bico">&#x2714; Salvar</button>
+            </div>
+            <div class="horario-saved-list" id="horario-saved-bico"></div>
+          </div>
         </div>
 
         <div class="section-sep">Valores</div>
@@ -1792,7 +1916,19 @@
         <option>Plantão 12h Diurno</option>
         <option>Plantão 12h Noturno</option>
         <option>Plantão 24h</option>
+        <option>17:00 – 07:00</option>
+        <option>18:00 – 07:00</option>
+        <option>18:00 – 08:00</option>
+        <option>18:00 – 08:30</option>
       </select>
+      <button type="button" class="btn-horario-toggle" id="btn-toggle-horario-edit-bico">&#x2795; Adicionar outro horário</button>
+      <div class="horario-custom-wrap" id="horario-custom-edit-bico">
+        <div class="horario-custom-row">
+          <input type="text" id="horario-custom-input-edit-bico" placeholder="Ex: 05:00 – 11:00" maxlength="40">
+          <button type="button" class="btn-horario-add" id="btn-horario-save-edit-bico">&#x2714; Salvar</button>
+        </div>
+        <div class="horario-saved-list" id="horario-saved-edit-bico"></div>
+      </div>
     </div>
 
     <div class="field">
@@ -1885,7 +2021,19 @@
         <option>Plantão 12h Diurno</option>
         <option>Plantão 12h Noturno</option>
         <option>Plantão 24h</option>
+        <option>17:00 – 07:00</option>
+        <option>18:00 – 07:00</option>
+        <option>18:00 – 08:00</option>
+        <option>18:00 – 08:30</option>
       </select>
+      <button type="button" class="btn-horario-toggle" id="btn-toggle-horario-edit-ft">&#x2795; Adicionar outro horário</button>
+      <div class="horario-custom-wrap" id="horario-custom-edit-ft">
+        <div class="horario-custom-row">
+          <input type="text" id="horario-custom-input-edit-ft" placeholder="Ex: 05:00 – 11:00" maxlength="40">
+          <button type="button" class="btn-horario-add" id="btn-horario-save-edit-ft">&#x2714; Salvar</button>
+        </div>
+        <div class="horario-saved-list" id="horario-saved-edit-ft"></div>
+      </div>
     </div>
 
     <div class="field">
@@ -3805,6 +3953,9 @@
 
     // Inicializa Dashboard Geral
     initDashboardGeral();
+
+    // Inicializa horários customizados
+    initHorariosCustom();
   }
 
   if (document.readyState === 'loading') {
@@ -4018,6 +4169,148 @@
 
 
     window.showToast = showToast;
+
+  // ════════════════════════════════════════════════
+  // ── HORÁRIOS CUSTOMIZADOS ────────────────────────
+  // ════════════════════════════════════════════════
+
+  var LS_HORARIOS = 'ft_horarios_custom';
+
+  function getHorariosCustom() {
+    try { return JSON.parse(localStorage.getItem(LS_HORARIOS) || '[]'); } catch(e) { return []; }
+  }
+
+  function saveHorariosCustom(arr) {
+    localStorage.setItem(LS_HORARIOS, JSON.stringify(arr));
+    if (window.FT_Store) FT_Store.set(LS_HORARIOS, arr);
+    if (window.FT_SyncQueue) FT_SyncQueue.enqueue('set', LS_HORARIOS, arr).then(function() {
+      if (window.SyncEngine) SyncEngine.flush();
+    });
+  }
+
+  // Injeta horários custom como <option> nos selects, evitando duplicatas
+  function injectHorariosCustom(selectId) {
+    var sel = document.getElementById(selectId);
+    if (!sel) return;
+    var customs = getHorariosCustom();
+    // Remove options injetadas anteriormente
+    sel.querySelectorAll('option[data-custom]').forEach(function(o) { o.remove(); });
+    // Injeta no topo (após o primeiro option vazio, se existir)
+    customs.forEach(function(h) {
+      var opt = document.createElement('option');
+      opt.value = h;
+      opt.textContent = '\u26A1 ' + h;
+      opt.setAttribute('data-custom', '1');
+      var first = sel.options[0];
+      if (first && first.value === '') {
+        sel.insertBefore(opt, sel.options[1] || null);
+      } else {
+        sel.insertBefore(opt, sel.firstChild);
+      }
+    });
+  }
+
+  // Injeta em todos os selects de horário
+  function injectAllHorariosCustom() {
+    ['horario', 'bico-horario', 'edit-horario', 'edit-bico-horario'].forEach(injectHorariosCustom);
+  }
+
+  // Renderiza chips de horários salvos em um container
+  function renderHorarioChips(listId, selectId) {
+    var container = document.getElementById(listId);
+    if (!container) return;
+    var customs = getHorariosCustom();
+    if (!customs.length) {
+      container.innerHTML = '<span style="font-size:.72rem;color:var(--muted);padding:2px 0;">Nenhum horário salvo ainda.</span>';
+      return;
+    }
+    container.innerHTML = customs.map(function(h) {
+      return '<span class="horario-saved-chip" data-h="' + escHtml(h) + '">' +
+        escHtml(h) +
+        '<button class="chip-del" data-del="' + escHtml(h) + '" title="Remover">&#x2715;</button>' +
+        '</span>';
+    }).join('');
+    container.querySelectorAll('.horario-saved-chip').forEach(function(chip) {
+      chip.addEventListener('click', function(e) {
+        if (e.target.classList.contains('chip-del')) return;
+        var sel = document.getElementById(selectId);
+        if (sel) sel.value = chip.dataset.h;
+        showToast('✅ Horário selecionado: ' + chip.dataset.h, 'success');
+      });
+    });
+    container.querySelectorAll('.chip-del').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var h = btn.dataset.del;
+        var arr = getHorariosCustom().filter(function(x) { return x !== h; });
+        saveHorariosCustom(arr);
+        injectAllHorariosCustom();
+        renderAllHorarioChips();
+        showToast('\uD83D\uDDD1\uFE0F Horário removido.', 'error');
+      });
+    });
+  }
+
+  function renderAllHorarioChips() {
+    renderHorarioChips('horario-saved-ft',      'horario');
+    renderHorarioChips('horario-saved-bico',     'bico-horario');
+    renderHorarioChips('horario-saved-edit-ft',  'edit-horario');
+    renderHorarioChips('horario-saved-edit-bico','edit-bico-horario');
+  }
+
+  // Salva um novo horário customizado
+  function addHorarioCustom(inputId, selectId) {
+    var inp = document.getElementById(inputId);
+    if (!inp) return;
+    var val = inp.value.trim();
+    if (!val) { showToast('\u26A0\uFE0F Digite o horário antes de salvar.', 'error'); return; }
+    var arr = getHorariosCustom();
+    if (arr.indexOf(val) !== -1) { showToast('\u26A0\uFE0F Horário já cadastrado.', 'error'); return; }
+    arr.push(val);
+    saveHorariosCustom(arr);
+    injectAllHorariosCustom();
+    renderAllHorarioChips();
+    var sel = document.getElementById(selectId);
+    if (sel) sel.value = val;
+    inp.value = '';
+    showToast('\u2705 Horário salvo e selecionado!', 'success');
+  }
+
+  // Toggle do painel de customização
+  function setupHorarioToggle(btnId, wrapId, listId, selectId) {
+    var btn  = document.getElementById(btnId);
+    var wrap = document.getElementById(wrapId);
+    if (!btn || !wrap) return;
+    btn.addEventListener('click', function() {
+      var open = wrap.classList.toggle('visible');
+      btn.innerHTML = open ? '&#x2212; Fechar horários personalizados' : '&#x2795; Adicionar outro horário';
+      if (open) renderHorarioChips(listId, selectId);
+    });
+  }
+
+  function initHorariosCustom() {
+    injectAllHorariosCustom();
+
+    setupHorarioToggle('btn-toggle-horario-ft',       'horario-custom-ft',       'horario-saved-ft',       'horario');
+    setupHorarioToggle('btn-toggle-horario-bico',     'horario-custom-bico',     'horario-saved-bico',     'bico-horario');
+    setupHorarioToggle('btn-toggle-horario-edit-ft',  'horario-custom-edit-ft',  'horario-saved-edit-ft',  'edit-horario');
+    setupHorarioToggle('btn-toggle-horario-edit-bico','horario-custom-edit-bico','horario-saved-edit-bico','edit-bico-horario');
+
+    var pairs = [
+      ['btn-horario-save-ft',       'horario-custom-input-ft',       'horario'],
+      ['btn-horario-save-bico',     'horario-custom-input-bico',     'bico-horario'],
+      ['btn-horario-save-edit-ft',  'horario-custom-input-edit-ft',  'edit-horario'],
+      ['btn-horario-save-edit-bico','horario-custom-input-edit-bico','edit-bico-horario']
+    ];
+    pairs.forEach(function(p) {
+      var btn = document.getElementById(p[0]);
+      if (btn) btn.addEventListener('click', function() { addHorarioCustom(p[1], p[2]); });
+      var inp = document.getElementById(p[1]);
+      if (inp) inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); addHorarioCustom(p[1], p[2]); }
+      });
+    });
+  }
 
   // ════════════════════════════════════════════════
   // ── DASHBOARD GERAL ─────────────────────────────
@@ -4459,7 +4752,7 @@ var FIRESTORE_DOC_ID     = 'dados';
         var data = doc.data();
 
         // Atualiza localStorage e IndexedDB com dados remotos
-        ['ft_registros', 'ft_colaboradores', 'ft_postos', 'ft_bico_fixo'].forEach(function (key) {
+        ['ft_registros', 'ft_colaboradores', 'ft_postos', 'ft_bico_fixo', 'ft_horarios_custom'].forEach(function (key) {
           if (data[key] !== undefined) {
             try { localStorage.setItem(key, JSON.stringify(data[key])); } catch (e) {}
             if (window.FT_Store) FT_Store.set(key, data[key]);
