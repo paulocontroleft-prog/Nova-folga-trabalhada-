@@ -1301,10 +1301,207 @@
   }
   .horario-saved-chip .chip-del:hover { opacity: 1; }
 
+  /* ════════════════════════════════════════════════
+     RESPONSIVO MOBILE — base mobile-first
+     ════════════════════════════════════════════════ */
+
+  /* ── Telas muito pequenas (< 360px) ── */
+  @media (max-width: 359px) {
+    header { padding: 12px 10px 10px; }
+    header h1 { font-size: .95rem; gap: 5px; }
+    .pj-brand-name { font-size: .58rem; }
+    .pj-monogram { font-size: .62rem; }
+    .badge-auto, #sync-status { font-size: .62rem; padding: 3px 8px; }
+    .tab-btn { font-size: .58rem; padding: 8px 2px; letter-spacing: 0; }
+    .tabs-wrapper { padding: 0 8px; }
+    .form-card { padding: 16px 12px; }
+    .btn { font-size: .82rem; padding: 13px 8px; }
+    .field-label { font-size: .68rem; }
+    select, input[type="number"],
+    input[type="datetime-local"],
+    input[type="text"] { font-size: .85rem; padding: 11px 12px; }
+    .kpi-value { font-size: 1rem; }
+    .kpi-label { font-size: .6rem; }
+    .modal-edit-box { padding: 18px 14px 24px; }
+  }
+
+  /* ── Mobile padrão (< 480px) ── */
+  @media (max-width: 479px) {
+    /* Header compacto */
+    header { padding: 14px 14px 12px; }
+    header h1 { font-size: 1.05rem; }
+    .pj-logo-inline { gap: 7px; }
+    .pj-hex-wrap { width: 30px; height: 34px; }
+    .pj-brand-name { font-size: .62rem; letter-spacing: 1px; }
+    .pj-brand-sub { font-size: .54rem; letter-spacing: 2px; }
+
+    /* Badges do header em linha única */
+    #sync-status { margin-left: 5px; }
+    .badge-auto, #sync-status, #pending-badge { font-size: .65rem; }
+
+    /* Tab nav — quebra em 2 linhas de 3 */
+    .tab-nav {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .tab-btn {
+      font-size: .62rem;
+      padding: 9px 3px;
+      border-radius: 8px;
+      letter-spacing: 0;
+    }
+
+    /* Wrapper sem padding lateral excessivo */
+    .tabs-wrapper { padding: 0 10px; margin-top: 14px; }
+
+    /* Form card */
+    .form-card { padding: 18px 14px; }
+    .field { margin-bottom: 18px; }
+    .field-label { font-size: .7rem; gap: 6px; }
+    .field-label .dot { width: 7px; height: 7px; }
+
+    /* Inputs touch-friendly */
+    select,
+    input[type="number"],
+    input[type="datetime-local"],
+    input[type="text"] {
+      font-size: .9rem;
+      padding: 13px 14px;
+      min-height: 48px;
+    }
+    select { padding-right: 36px; }
+
+    /* Botões de ação grandes para toque */
+    .btn { font-size: .88rem; padding: 15px 10px; min-height: 50px; }
+    .btn-row { gap: 10px; }
+
+    /* Notice */
+    .notice { font-size: .8rem; padding: 12px 14px; }
+
+    /* Cadastros */
+    .cadastro-section { padding: 16px 14px; }
+    .add-row { gap: 6px; }
+    .btn-add { padding: 0 14px; font-size: .82rem; }
+    .list-item { padding: 10px 12px; font-size: .85rem; }
+    .btn-remove, .btn-edit-item { padding: 5px 8px; font-size: .78rem; }
+
+    /* Relatório — botões empilhados em mobile */
+    .relatorio-row { flex-direction: column; gap: 8px; }
+    .btn-relatorio { flex-direction: row; justify-content: center; gap: 8px; padding: 14px 16px; }
+    .btn-relatorio .rel-icon { font-size: 1.2rem; }
+    .btn-relatorio .rel-sub { display: none; }
+
+    /* Filtros */
+    .filtro-row { gap: 5px; flex-wrap: wrap; }
+    .btn-filtro { font-size: .72rem; padding: 7px 10px; }
+
+    /* Dashboard KPIs */
+    .kpi-row { gap: 7px; }
+    .kpi-card { padding: 12px 6px; border-radius: 10px; }
+    .kpi-value { font-size: 1.05rem; }
+    .kpi-label { font-size: .6rem; letter-spacing: 0; }
+
+    /* Dashboard pills */
+    .dash-pill { font-size: .68rem; padding: 5px 10px; }
+    .dash-pill-row { gap: 5px; }
+    .dash-filter-card { padding: 14px; }
+
+    /* Dashboard exportação */
+    .dash-export-row { gap: 8px; }
+    .btn-dash-export { padding: 12px 8px; font-size: .72rem; }
+
+    /* Ranking */
+    .rank-row { padding: 8px 10px; gap: 7px; }
+    .rank-name { font-size: .82rem; }
+    .rank-badge { font-size: .65rem; padding: 2px 6px; }
+
+    /* Histórico */
+    .hist-search-input { font-size: .85rem; padding: 11px 12px 11px 40px; }
+    .hist-card { padding: 12px 13px; }
+    .hist-colab { font-size: .84rem; }
+    .hist-valor { font-size: .88rem; }
+    .hist-tag { font-size: .67rem; padding: 3px 8px; }
+    .hist-data { font-size: .7rem; }
+    .hist-quem-faltou { font-size: .68rem; }
+    .hist-footer { flex-wrap: wrap; gap: 6px; }
+    .btn-hist-edit, .btn-hist-del { font-size: .7rem; padding: 9px 6px; min-height: 40px; }
+
+    /* Modal edição */
+    .modal-edit-box { padding: 20px 16px 28px; border-radius: 18px 18px 0 0; }
+    .modal-edit-title { font-size: .88rem; }
+    .btn-edit-cancel, .btn-edit-save { padding: 13px; font-size: .85rem; }
+
+    /* Modal duplicata */
+    .modal-box { padding: 22px 16px 18px; border-radius: 14px; }
+    .modal-title { font-size: .9rem; }
+    .modal-body { font-size: .82rem; padding: 12px 14px; }
+    .btn-modal-ok { padding: 12px; font-size: .85rem; }
+
+    /* Horário custom */
+    .btn-horario-toggle { font-size: .68rem; padding: 6px 10px; }
+    .horario-saved-chip { font-size: .68rem; padding: 4px 8px 4px 10px; }
+    .btn-horario-add { font-size: .75rem; padding: 10px 12px; }
+
+    /* Bico Fixo */
+    .relatorio-section { padding: 16px 14px; }
+
+    /* Dashboard Geral selects em coluna */
+    .dash-filter-row { flex-direction: column; gap: 10px; }
+    .dash-select { font-size: .85rem; padding: 10px 12px; }
+
+    /* Export cards */
+    .dash-export-card { padding: 14px; }
+    .dash-export-label { font-size: .64rem; }
+
+    /* Geral lista */
+    #geral-list .hist-card { padding: 11px 12px; }
+
+    /* Toast acima do footer */
+    .toast { bottom: 72px; font-size: .82rem; padding: 12px 18px; }
+
+    /* Footer PJ */
+    #pj-footer { padding: 6px 10px 5px; gap: 5px; }
+    .pj-footer-name { font-size: .46rem; }
+    .pj-footer-tagline { font-size: .5rem; letter-spacing: 1px; }
+    .pj-footer-sep { height: 10px; }
+
+    /* Seção separador */
+    .section-sep { font-size: .64rem; margin: 6px 0 14px; }
+  }
+
+  /* ── Tablet pequeno / mobile landscape (480px–767px) ── */
+  @media (min-width: 480px) and (max-width: 767px) {
+    .tabs-wrapper { padding: 0 12px; max-width: 600px; }
+    .tab-nav { gap: 8px; }
+    .tab-btn { font-size: .7rem; padding: 10px 4px; }
+    .dash-filter-row { flex-direction: row; flex-wrap: wrap; }
+    .relatorio-row { gap: 10px; }
+    header h1 { font-size: 1.3rem; }
+  }
+
+  /* ── Desktop / tablet largo (≥ 500px) ── */
   @media (min-width: 500px) {
     header h1 { font-size: 1.6rem; }
-    .tabs-wrapper { padding: 0; }
+    .tabs-wrapper { padding: 0; max-width: 520px; }
     .dash-filter-row { flex-direction: row; flex-wrap: wrap; }
+  }
+
+  /* ── Toque: aumentar área de tap em botões pequenos ── */
+  @media (hover: none) and (pointer: coarse) {
+    .btn-remove, .btn-edit-item,
+    .btn-save-item, .btn-cancel-item {
+      min-height: 38px;
+      min-width: 38px;
+    }
+    .tab-btn { min-height: 44px; }
+    select,
+    input[type="number"],
+    input[type="datetime-local"],
+    input[type="text"] { min-height: 48px; }
+    .btn-modal-ok,
+    .btn-edit-save,
+    .btn-edit-cancel { min-height: 48px; }
   }
 </style>
 </head>
