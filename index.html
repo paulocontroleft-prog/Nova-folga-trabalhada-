@@ -3037,31 +3037,89 @@
     doc.setDrawColor(247, 183, 49); doc.setLineWidth(1.2);
     doc.line(0, 38, W, 38);
 
-    // Hexágono logo
+    // ── Logo PJ premium no recibo ──
     var hcx = 20, hcy = 19, hr = 14;
+
+    // Halo externo em camadas
+    [3, 2, 1].forEach(function(offset, i) {
+      doc.setFillColor(0, 50 + i*25, 100 + i*20);
+      doc.setDrawColor(0, 50 + i*25, 100 + i*20); doc.setLineWidth(0);
+      var sh = [];
+      for (var s = 0; s < 6; s++) {
+        var sa = Math.PI / 180 * (60 * s - 30);
+        sh.push([hcx + (hr + offset) * Math.cos(sa), hcy + (hr + offset) * Math.sin(sa)]);
+      }
+      doc.lines(sh.slice(1).map(function(p,i2){ return [p[0]-sh[i2][0], p[1]-sh[i2][1]]; })
+        .concat([[sh[0][0]-sh[5][0], sh[0][1]-sh[5][1]]]), sh[0][0], sh[0][1], [1,1], 'F', true);
+    });
+
+    // Hexágono principal
     var hexPts = [];
     for (var hi = 0; hi < 6; hi++) {
       var ang = Math.PI / 180 * (60 * hi - 30);
       hexPts.push([hcx + hr * Math.cos(ang), hcy + hr * Math.sin(ang)]);
     }
-    doc.setFillColor(10, 42, 100);
-    doc.setDrawColor(0, 200, 248); doc.setLineWidth(1);
-    doc.lines(
-      hexPts.slice(1).map(function(p, i) { return [p[0]-hexPts[i][0], p[1]-hexPts[i][1]]; })
-        .concat([[hexPts[0][0]-hexPts[5][0], hexPts[0][1]-hexPts[5][1]]]),
-      hexPts[0][0], hexPts[0][1], [1,1], 'FD', true
-    );
-    doc.setFont('helvetica','bold'); doc.setFontSize(11);
-    doc.setTextColor(255,255,255); doc.text('P', hcx-3.5, hcy+2.2);
-    doc.setTextColor(0,220,255);   doc.text('J', hcx+2.2, hcy+2.2);
+    doc.setFillColor(8, 35, 90);
+    doc.setDrawColor(0, 200, 255); doc.setLineWidth(1.6);
+    doc.lines(hexPts.slice(1).map(function(p,i){ return [p[0]-hexPts[i][0], p[1]-hexPts[i][1]]; })
+      .concat([[hexPts[0][0]-hexPts[5][0], hexPts[0][1]-hexPts[5][1]]]), hexPts[0][0], hexPts[0][1], [1,1], 'FD', true);
+
+    // Borda interna fina
+    var hexIB = [];
+    for (var hib = 0; hib < 6; hib++) {
+      var aib = Math.PI / 180 * (60 * hib - 30);
+      hexIB.push([hcx + (hr - 1.8) * Math.cos(aib), hcy + (hr - 1.8) * Math.sin(aib)]);
+    }
+    doc.setDrawColor(0, 170, 235); doc.setLineWidth(0.3);
+    doc.lines(hexIB.slice(1).map(function(p,i){ return [p[0]-hexIB[i][0], p[1]-hexIB[i][1]]; })
+      .concat([[hexIB[0][0]-hexIB[5][0], hexIB[0][1]-hexIB[5][1]]]), hexIB[0][0], hexIB[0][1], [1,1], 'D', true);
+
+    // Reflexo superior (brilho vidro)
+    var hexTop = [];
+    for (var ht = 0; ht < 6; ht++) {
+      var at = Math.PI / 180 * (60 * ht - 30);
+      hexTop.push([hcx + (hr*0.7)*Math.cos(at), hcy - 3 + (hr*0.38)*Math.sin(at)]);
+    }
+    doc.setFillColor(35, 100, 200); doc.setDrawColor(35, 100, 200); doc.setLineWidth(0);
+    doc.lines(hexTop.slice(1).map(function(p,i){ return [p[0]-hexTop[i][0], p[1]-hexTop[i][1]]; })
+      .concat([[hexTop[0][0]-hexTop[5][0], hexTop[0][1]-hexTop[5][1]]]), hexTop[0][0], hexTop[0][1], [1,1], 'F', true);
+
+    // Brilho metálico
+    doc.setDrawColor(100, 200, 255); doc.setLineWidth(0.45);
+    doc.line(hcx - hr*0.5, hcy - 1, hcx + hr*0.5, hcy - 1);
+
+    // Vértices duplos
+    hexPts.forEach(function(pt) {
+      doc.setFillColor(0, 150, 210); doc.circle(pt[0], pt[1], 1.2, 'F');
+      doc.setFillColor(0, 230, 255); doc.circle(pt[0], pt[1], 0.6, 'F');
+    });
+
+    // Monograma PJ
+    doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.setTextColor(240, 248, 255); doc.text('P', hcx - 4.5, hcy + 2.8);
+    doc.setTextColor(0, 235, 255);   doc.text('J', hcx + 1.4, hcy + 2.8);
+    // Traços decorativos
+    doc.setDrawColor(0, 200, 255); doc.setLineWidth(0.9);
+    doc.line(hcx - 5.5, hcy + 5.5, hcx + 5.5, hcy + 5.5);
+    doc.setDrawColor(0, 110, 170); doc.setLineWidth(0.3);
+    doc.line(hcx - 3.5, hcy + 6.7, hcx + 3.5, hcy + 6.7);
 
     // Marca texto
-    doc.setFont('helvetica','bold'); doc.setFontSize(11);
-    doc.setTextColor(0, 210, 255);
-    doc.text('PJ TECNOLOGIA E SISTEMAS', 36, 14);
-    doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
-    doc.setTextColor(180, 200, 230);
-    doc.text('Inovação que conecta. Tecnologia que transforma.', 36, 20);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
+    // "PJ" ciano
+    doc.setTextColor(0, 215, 255);
+    doc.text('PJ', 36, 13);
+    // "TECNOLOGIA" branco, posicionado após o "PJ" com espaço adequado
+    doc.setTextColor(230, 240, 255);
+    doc.text('TECNOLOGIA', 36 + 8.5, 13);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(155, 190, 225);
+    doc.text('E  S I S T E M A S', 36, 20);
+    doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.45);
+    doc.line(36, 22.5, 94, 22.5);
+    doc.setDrawColor(0, 130, 180); doc.setLineWidth(0.18);
+    doc.line(36, 23.2, 94, 23.2);
+    doc.setFont('helvetica','normal'); doc.setFontSize(5.5); doc.setTextColor(0, 170, 210);
+    doc.text('Inovacao que conecta.  Tecnologia que transforma.', 36, 28.5);
 
     // Título do recibo à direita
     doc.setFont('helvetica','bold'); doc.setFontSize(14);
@@ -3934,116 +3992,173 @@
 
   // ── Helper: cabeçalho PDF reutilizável ───────────────
   function pdfCabecalho(doc, W, titulo, subtitulo, badges) {
-    // Fundo escuro completo
+    // ── Altura total do cabeçalho aumentada para acomodar badges numa linha extra ──
+    var hdrH = 58;
+
+    // Fundo escuro completo da página
     doc.setFillColor(10, 14, 20);
     doc.rect(0, 0, W, 297, 'F');
-    // Cabeçalho com gradiente simulado (duas faixas)
+
+    // Faixa do cabeçalho
     doc.setFillColor(22, 30, 48);
-    doc.rect(0, 0, W, 44, 'F');
-    doc.setFillColor(18, 25, 40);
-    doc.rect(0, 30, W, 14, 'F');
-    // Linha de destaque âmbar embaixo do cabeçalho
+    doc.rect(0, 0, W, hdrH, 'F');
+    // Faixa inferior mais escura para a linha de badges
+    doc.setFillColor(15, 21, 36);
+    doc.rect(0, 40, W, hdrH - 40, 'F');
+    // Linha âmbar embaixo
     doc.setDrawColor(247, 183, 49); doc.setLineWidth(1.2);
-    doc.line(0, 44, W, 44);
-    // Linha de acento ciano fina logo acima
+    doc.line(0, hdrH, W, hdrH);
     doc.setDrawColor(0, 200, 248); doc.setLineWidth(0.3);
-    doc.line(0, 43.2, W, 43.2);
+    doc.line(0, hdrH - 0.8, W, hdrH - 0.8);
 
-    // ── Logo PJ aprimorado ─────────────────────────────────
-    var hcx = 23, hcy = 22, hr = 18;
+    // ── Logo PJ — versão premium ──────────────────────────
+    var hcx = 22, hcy = 20, hr = 17;
 
-    // Sombra/halo do hexágono
-    doc.setFillColor(0, 100, 160);
-    doc.setDrawColor(0, 100, 160); doc.setLineWidth(0);
-    var hexShadow = [];
-    for (var si = 0; si < 6; si++) {
-      var sang = Math.PI / 180 * (60 * si - 30);
-      hexShadow.push([hcx + (hr + 2.5) * Math.cos(sang), hcy + (hr + 2.5) * Math.sin(sang)]);
-    }
-    doc.lines(
-      hexShadow.slice(1).map(function(p, i) { return [p[0] - hexShadow[i][0], p[1] - hexShadow[i][1]]; })
-        .concat([[hexShadow[0][0] - hexShadow[5][0], hexShadow[0][1] - hexShadow[5][1]]]),
-      hexShadow[0][0], hexShadow[0][1], [1,1], 'F', true
-    );
+    // 1. Halo externo difuso (sombra azul profunda)
+    [4, 3, 2].forEach(function(offset, i) {
+      var alpha = [20, 40, 70][i];
+      doc.setFillColor(0, 60 + i*20, 120 + i*15);
+      doc.setDrawColor(0, 60 + i*20, 120 + i*15);
+      doc.setLineWidth(0);
+      var sh = [];
+      for (var s = 0; s < 6; s++) {
+        var sa = Math.PI / 180 * (60 * s - 30);
+        sh.push([hcx + (hr + offset) * Math.cos(sa), hcy + (hr + offset) * Math.sin(sa)]);
+      }
+      doc.lines(
+        sh.slice(1).map(function(p, i2) { return [p[0]-sh[i2][0], p[1]-sh[i2][1]]; })
+          .concat([[sh[0][0]-sh[5][0], sh[0][1]-sh[5][1]]]),
+        sh[0][0], sh[0][1], [1,1], 'F', true
+      );
+    });
 
-    // Fundo do hexágono principal (azul profundo)
+    // 2. Hexágono principal — fundo azul escuro rico
     var hexPts = [];
     for (var hi = 0; hi < 6; hi++) {
       var ang = Math.PI / 180 * (60 * hi - 30);
       hexPts.push([hcx + hr * Math.cos(ang), hcy + hr * Math.sin(ang)]);
     }
-    doc.setFillColor(10, 42, 100);
-    doc.setDrawColor(0, 220, 255); doc.setLineWidth(1.4);
+    doc.setFillColor(8, 35, 90);
+    doc.setDrawColor(0, 200, 255); doc.setLineWidth(1.8);
     doc.lines(
-      hexPts.slice(1).map(function(p, i) { return [p[0] - hexPts[i][0], p[1] - hexPts[i][1]]; })
-        .concat([[hexPts[0][0] - hexPts[5][0], hexPts[0][1] - hexPts[5][1]]]),
+      hexPts.slice(1).map(function(p, i) { return [p[0]-hexPts[i][0], p[1]-hexPts[i][1]]; })
+        .concat([[hexPts[0][0]-hexPts[5][0], hexPts[0][1]-hexPts[5][1]]]),
       hexPts[0][0], hexPts[0][1], [1,1], 'FD', true
     );
 
-    // Reflexo interno superior (brilho)
-    var hexInner = [];
-    for (var ii = 0; ii < 6; ii++) {
-      var iang = Math.PI / 180 * (60 * ii - 30);
-      hexInner.push([hcx + (hr * 0.6) * Math.cos(iang), hcy - 3 + (hr * 0.4) * Math.sin(iang)]);
+    // 3. Borda interna fina ciano (efeito dupla borda)
+    var hexInBorder = [];
+    for (var hib = 0; hib < 6; hib++) {
+      var aib = Math.PI / 180 * (60 * hib - 30);
+      hexInBorder.push([hcx + (hr - 2.2) * Math.cos(aib), hcy + (hr - 2.2) * Math.sin(aib)]);
     }
-    doc.setFillColor(20, 80, 180);
-    doc.setDrawColor(20, 80, 180); doc.setLineWidth(0);
+    doc.setFillColor(0, 0, 0, 0);
+    doc.setDrawColor(0, 180, 240); doc.setLineWidth(0.35);
     doc.lines(
-      hexInner.slice(1).map(function(p, i) { return [p[0] - hexInner[i][0], p[1] - hexInner[i][1]]; })
-        .concat([[hexInner[0][0] - hexInner[5][0], hexInner[0][1] - hexInner[5][1]]]),
-      hexInner[0][0], hexInner[0][1], [1,1], 'F', true
+      hexInBorder.slice(1).map(function(p, i) { return [p[0]-hexInBorder[i][0], p[1]-hexInBorder[i][1]]; })
+        .concat([[hexInBorder[0][0]-hexInBorder[5][0], hexInBorder[0][1]-hexInBorder[5][1]]]),
+      hexInBorder[0][0], hexInBorder[0][1], [1,1], 'D', true
     );
 
-    // Vértices ciano nos cantos do hexágono
-    doc.setFillColor(0, 220, 255);
-    hexPts.forEach(function(pt) { doc.circle(pt[0], pt[1], 0.9, 'F'); });
+    // 4. Reflexo interno superior (brilho tipo vidro)
+    var hexTop = [];
+    for (var ht = 0; ht < 6; ht++) {
+      var at = Math.PI / 180 * (60 * ht - 30);
+      hexTop.push([hcx + (hr * 0.72) * Math.cos(at), hcy - 3.5 + (hr * 0.38) * Math.sin(at)]);
+    }
+    doc.setFillColor(40, 110, 210); doc.setDrawColor(40, 110, 210); doc.setLineWidth(0);
+    doc.lines(
+      hexTop.slice(1).map(function(p, i) { return [p[0]-hexTop[i][0], p[1]-hexTop[i][1]]; })
+        .concat([[hexTop[0][0]-hexTop[5][0], hexTop[0][1]-hexTop[5][1]]]),
+      hexTop[0][0], hexTop[0][1], [1,1], 'F', true
+    );
 
-    // Monograma "PJ" centralizado e maior
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
-    doc.setTextColor(255, 255, 255);
-    doc.text('P', hcx - 4.2, hcy + 2.8);
-    doc.setTextColor(0, 230, 255);
-    doc.text('J', hcx + 2.8, hcy + 2.8);
+    // 5. Linha de brilho horizontal no meio (efeito metálico)
+    doc.setDrawColor(100, 200, 255); doc.setLineWidth(0.5);
+    doc.line(hcx - hr * 0.55, hcy - 1, hcx + hr * 0.55, hcy - 1);
+    doc.setDrawColor(60, 150, 220); doc.setLineWidth(0.2);
+    doc.line(hcx - hr * 0.4, hcy + 1.5, hcx + hr * 0.4, hcy + 1.5);
 
-    // Sublinhado ciano decorativo
-    doc.setDrawColor(0, 220, 255); doc.setLineWidth(0.8);
-    doc.line(hcx - 6, hcy + 5.5, hcx + 6, hcy + 5.5);
-
-    // ── Texto da marca ao lado do hexágono ────────────────
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(0, 220, 255);
-    doc.text('PJ TECNOLOGIA', 46, 15);
-    doc.setFontSize(9.5); doc.setTextColor(210, 230, 255);
-    doc.text('E SISTEMAS', 46, 23);
-    // Linha separadora horizontal fina
-    doc.setDrawColor(0, 150, 200); doc.setLineWidth(0.3);
-    doc.line(46, 25.5, 108, 25.5);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setTextColor(0, 190, 230);
-    doc.text('Inovacao que conecta. Tecnologia que transforma.', 46, 31);
-
-    // Separador vertical
-    doc.setDrawColor(60, 80, 120); doc.setLineWidth(0.5);
-    doc.line(115, 4, 115, 41);
-
-    // Título e subtítulo à direita — maior contraste
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(13.5); doc.setTextColor(255, 200, 40);
-    doc.text(titulo, (W + 115) / 2, 13, { align: 'center' });
-    doc.setFontSize(7.5); doc.setTextColor(170, 185, 210); doc.setFont('helvetica', 'normal');
-    doc.text(subtitulo, (W + 115) / 2, 20, { align: 'center' });
-
-    var bw = Math.floor((W - 115 - 14) / badges.length);
-    var bx = 117; var by = 27;
-    badges.forEach(function(b) {
-      doc.setFillColor(35, 48, 75);
-      doc.setDrawColor(70, 100, 150); doc.setLineWidth(0.3);
-      doc.roundedRect(bx, by - 4, bw - 3, 12, 2, 2, 'FD');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(5.5); doc.setTextColor(160, 180, 210);
-      doc.text(b.label, bx + (bw - 3) / 2, by + 0.5, { align: 'center' });
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(255, 210, 60);
-      var val = b.value.length > 18 ? b.value.slice(0, 17) + '…' : b.value;
-      doc.text(val, bx + (bw - 3) / 2, by + 6, { align: 'center' });
-      bx += bw;
+    // 6. Vértices — pontos ciano brilhantes com halo
+    hexPts.forEach(function(pt) {
+      doc.setFillColor(0, 160, 220); doc.circle(pt[0], pt[1], 1.4, 'F');
+      doc.setFillColor(0, 230, 255); doc.circle(pt[0], pt[1], 0.7, 'F');
     });
-    return 54;
+
+    // 7. Monograma "PJ" — maior, mais elegante, espaçado
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+    doc.setTextColor(240, 248, 255);
+    doc.text('P', hcx - 5.2, hcy + 3.2);
+    doc.setTextColor(0, 235, 255);
+    doc.text('J', hcx + 1.6, hcy + 3.2);
+
+    // 8. Traço decorativo sob o monograma — gradiente simulado com duas linhas
+    doc.setDrawColor(0, 200, 255); doc.setLineWidth(1.0);
+    doc.line(hcx - 6.5, hcy + 6.2, hcx + 6.5, hcy + 6.2);
+    doc.setDrawColor(0, 120, 180); doc.setLineWidth(0.35);
+    doc.line(hcx - 4.5, hcy + 7.5, hcx + 4.5, hcy + 7.5);
+
+    // ── Texto da marca — mais refinado ──────────────────────
+    var tx = 43;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+    // "PJ" em ciano
+    doc.setTextColor(0, 215, 255);
+    doc.text('PJ', tx, 13);
+    // "TECNOLOGIA" em branco, posicionado após o "PJ" com espaço adequado
+    doc.setTextColor(230, 240, 255);
+    doc.text('TECNOLOGIA', tx + 9, 13);
+    // Linha 2
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(160, 195, 230);
+    doc.text('E  S I S T E M A S', tx, 20);
+    // Linha separadora com acento âmbar
+    doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.5);
+    doc.line(tx, 23, tx + 58, 23);
+    doc.setDrawColor(0, 140, 190); doc.setLineWidth(0.2);
+    doc.line(tx, 23.7, tx + 58, 23.7);
+    // Tagline
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(5.8); doc.setTextColor(0, 175, 215);
+    doc.text('Inovacao que conecta.  Tecnologia que transforma.', tx, 29);
+
+    // ── Separador vertical ──
+    doc.setDrawColor(50, 70, 110); doc.setLineWidth(0.5);
+    doc.line(104, 4, 104, 37);
+
+    // ── Título e subtítulo centralizados na metade direita ──
+    var rightCx = (104 + W) / 2;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(255, 200, 40);
+    doc.text(titulo, rightCx, 14, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(160, 180, 210);
+    doc.text(subtitulo, rightCx, 21, { align: 'center' });
+
+    // ── Badges em linha única abaixo, ocupando toda a largura ──
+    var badgePadX = 8;           // margem lateral total
+    var badgeGap  = 4;           // espaço entre badges
+    var totalGap  = badgeGap * (badges.length - 1);
+    var bw        = (W - 2 * badgePadX - totalGap) / badges.length;
+    var bx        = badgePadX;
+    var by        = 42;
+    var bh        = 12;
+
+    badges.forEach(function(b) {
+      // Fundo do badge
+      doc.setFillColor(28, 40, 65);
+      doc.setDrawColor(60, 90, 140); doc.setLineWidth(0.3);
+      doc.roundedRect(bx, by, bw, bh, 2, 2, 'FD');
+
+      // Label (linha superior)
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(5.5); doc.setTextColor(130, 155, 195);
+      doc.text(b.label, bx + bw / 2, by + 4, { align: 'center' });
+
+      // Valor (linha inferior) — trunca se necessário
+      var maxChars = Math.floor(bw / 2.8);
+      var val = b.value.length > maxChars ? b.value.slice(0, maxChars - 1) + '…' : b.value;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(255, 215, 60);
+      doc.text(val, bx + bw / 2, by + 9.5, { align: 'center' });
+
+      bx += bw + badgeGap;
+    });
+
+    return hdrH + 8; // y inicial do conteúdo
   }
 
   // ── Helper: bloco KPI ─────────────────────────────────
