@@ -3106,19 +3106,19 @@
 
     // Marca texto
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
-    // "PJ" ciano
-    doc.setTextColor(0, 215, 255);
+    // "PJ" ciano vibrante
+    doc.setTextColor(0, 240, 255);
     doc.text('PJ', 36, 13);
-    // "TECNOLOGIA" branco, posicionado após o "PJ" com espaço adequado
-    doc.setTextColor(230, 240, 255);
+    // "TECNOLOGIA" branco puro
+    doc.setTextColor(255, 255, 255);
     doc.text('TECNOLOGIA', 36 + 8.5, 13);
-    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(155, 190, 225);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(247, 200, 80);
     doc.text('E  S I S T E M A S', 36, 20);
     doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.45);
     doc.line(36, 22.5, 94, 22.5);
-    doc.setDrawColor(0, 130, 180); doc.setLineWidth(0.18);
+    doc.setDrawColor(0, 200, 255); doc.setLineWidth(0.18);
     doc.line(36, 23.2, 94, 23.2);
-    doc.setFont('helvetica','normal'); doc.setFontSize(5.5); doc.setTextColor(0, 170, 210);
+    doc.setFont('helvetica','normal'); doc.setFontSize(5.5); doc.setTextColor(200, 230, 255);
     doc.text('Inovacao que conecta.  Tecnologia que transforma.', 36, 28.5);
 
     // Título do recibo à direita
@@ -4098,25 +4098,25 @@
     doc.setDrawColor(0, 120, 180); doc.setLineWidth(0.35);
     doc.line(hcx - 4.5, hcy + 7.5, hcx + 4.5, hcy + 7.5);
 
-    // ── Texto da marca — mais refinado ──────────────────────
+    // ── Texto da marca — alto contraste ──────────────────────
     var tx = 43;
     doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-    // "PJ" em ciano
-    doc.setTextColor(0, 215, 255);
+    // "PJ" em ciano vibrante
+    doc.setTextColor(0, 240, 255);
     doc.text('PJ', tx, 13);
-    // "TECNOLOGIA" em branco, posicionado após o "PJ" com espaço adequado
-    doc.setTextColor(230, 240, 255);
+    // "TECNOLOGIA" em branco puro
+    doc.setTextColor(255, 255, 255);
     doc.text('TECNOLOGIA', tx + 9, 13);
-    // Linha 2
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(160, 195, 230);
+    // Linha 2 — amarelo âmbar para contraste máximo
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(247, 200, 80);
     doc.text('E  S I S T E M A S', tx, 20);
     // Linha separadora com acento âmbar
     doc.setDrawColor(247, 183, 49); doc.setLineWidth(0.5);
     doc.line(tx, 23, tx + 58, 23);
-    doc.setDrawColor(0, 140, 190); doc.setLineWidth(0.2);
+    doc.setDrawColor(0, 200, 255); doc.setLineWidth(0.2);
     doc.line(tx, 23.7, tx + 58, 23.7);
-    // Tagline
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(5.8); doc.setTextColor(0, 175, 215);
+    // Tagline — branco suave legível
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(5.8); doc.setTextColor(200, 230, 255);
     doc.text('Inovacao que conecta.  Tecnologia que transforma.', tx, 29);
 
     // ── Separador vertical ──
@@ -4127,7 +4127,7 @@
     var rightCx = (104 + W) / 2;
     doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(255, 200, 40);
     doc.text(titulo, rightCx, 14, { align: 'center' });
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(160, 180, 210);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(200, 220, 255);
     doc.text(subtitulo, rightCx, 21, { align: 'center' });
 
     // ── Badges em linha única abaixo, ocupando toda a largura ──
@@ -4141,18 +4141,18 @@
 
     badges.forEach(function(b) {
       // Fundo do badge
-      doc.setFillColor(28, 40, 65);
-      doc.setDrawColor(60, 90, 140); doc.setLineWidth(0.3);
+      doc.setFillColor(35, 50, 80);
+      doc.setDrawColor(0, 180, 255); doc.setLineWidth(0.4);
       doc.roundedRect(bx, by, bw, bh, 2, 2, 'FD');
 
-      // Label (linha superior)
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(5.5); doc.setTextColor(130, 155, 195);
+      // Label (linha superior) — branco nítido
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(5.5); doc.setTextColor(200, 225, 255);
       doc.text(b.label, bx + bw / 2, by + 4, { align: 'center' });
 
-      // Valor (linha inferior) — trunca se necessário
+      // Valor (linha inferior) — amarelo âmbar vibrante
       var maxChars = Math.floor(bw / 2.8);
       var val = b.value.length > maxChars ? b.value.slice(0, maxChars - 1) + '…' : b.value;
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(255, 215, 60);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(255, 230, 0);
       doc.text(val, bx + bw / 2, by + 9.5, { align: 'center' });
 
       bx += bw + badgeGap;
