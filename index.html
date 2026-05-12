@@ -370,18 +370,43 @@
   }
   .field-hint.visible { opacity: 1; }
 
-  .input-prefix { position: relative; }
+  .input-prefix {
+    display: flex;
+    align-items: center;
+    background: var(--input-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .input-prefix:focus-within {
+    border-color: var(--accent1);
+    box-shadow: 0 0 0 3px rgba(247,183,49,.18);
+  }
   .input-prefix span {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
+    padding: 0 4px 0 16px;
     color: var(--accent2);
     font-weight: 700;
     font-size: .95rem;
     pointer-events: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1;
   }
-  .input-prefix input { padding-left: 36px; }
+  .input-prefix input {
+    flex: 1;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding-left: 6px !important;
+    padding-right: 14px;
+    min-width: 0;
+  }
+  .input-prefix input:focus {
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
 
   .section-sep {
     display: flex;
@@ -1569,7 +1594,7 @@
 
     <div class="notice">
       <strong>&#x2139;&#xFE0F; Observação:</strong> O campo <em>"Quem está indo"</em> é sempre visível — informe o porteiro/colaborador que vai trabalhar.
-      O campo <em>"Quem faltou"</em> aparece apenas para motivos com ausente: <span class="hl-green">Atestado</span>, <span class="hl-green">Suspensão</span>, <span class="hl-green">Folga do Vigia</span>, <span class="hl-green">Cobertura de Férias</span>, <span class="hl-orange">Afastamento</span>, <span class="hl-orange">Remanejamento Interno</span> e <span class="hl-orange">Falta de Efetivo</span>.
+      O campo <em>"Quem faltou"</em> aparece apenas para motivos com ausente: <span class="hl-green">Atestado</span>, <span class="hl-green">Suspensão</span>, <span class="hl-green">Folga do Vigia</span>, <span class="hl-green">Cobertura de Férias</span>, <span class="hl-orange">Afastamento</span>. Para <span class="hl-orange">Remanejamento Interno</span> aparece como <em>"Quem foi remanejado"</em>. Motivos <span class="hl-green">Extra</span>, <span class="hl-orange">Treinamento</span> e <span class="hl-orange">Falta de Efetivo</span> não exibem este campo.
     </div>
 
     <div class="form-card">
@@ -2556,22 +2581,34 @@
 
   var MOTIVOS_COM_FALTOU = [
     'Atestado', 'Suspensão', 'Folga do Vigia', 'Cobertura de Férias',
-    'Afastamento', 'Remanejamento Interno', 'Falta de Efetivo'
+    'Afastamento', 'Remanejamento Interno'
   ];
+  // Falta de Efetivo e Extra e Treinamento NÃO exibem "Quem faltou"
 
   function handleMotivoChange() {
     var motivo      = document.getElementById('motivo').value;
     var blockFaltou = document.getElementById('block-quem-faltou');
     var selFaltou   = document.getElementById('quemFaltou');
     var hintFaltou  = document.getElementById('hint-quem-faltou');
+    // Label dinâmica do campo
+    var labelFaltou = blockFaltou.querySelector('.field-label');
 
     if (motivo && MOTIVOS_COM_FALTOU.indexOf(motivo) !== -1) {
       blockFaltou.classList.remove('hidden');
-      if (motivo === 'Cobertura de Férias') {
+
+      // Altera label conforme motivo
+      if (motivo === 'Remanejamento Interno') {
+        labelFaltou.innerHTML = '<span class="dot bg-danger"></span>🔀 Quem foi remanejado';
+        hintFaltou.textContent = '';
+        hintFaltou.classList.remove('visible');
+        selFaltou.required = true;
+      } else if (motivo === 'Cobertura de Férias') {
+        labelFaltou.innerHTML = '<span class="dot bg-danger"></span>🚨 Quem faltou';
         selFaltou.required = false;
         hintFaltou.textContent = 'Opcional para cobertura de férias';
         hintFaltou.classList.add('visible');
       } else {
+        labelFaltou.innerHTML = '<span class="dot bg-danger"></span>🚨 Quem faltou';
         selFaltou.required = true;
         hintFaltou.textContent = '';
         hintFaltou.classList.remove('visible');
@@ -2691,12 +2728,22 @@
   function addColaborador() {
     var input = document.getElementById('inputColaborador');
     var nome  = input.value.trim();
-    if (!nome) return;
+    if (!nome) { input.focus(); return; }
 
     var existe = colaboradores.some(function(c) {
       return c.nome.toLowerCase() === nome.toLowerCase();
     });
-    if (existe) { showToast('⚠️ Colaborador já cadastrado.', 'error'); return; }
+    if (existe) {
+      showToast('⚠️ Colaborador "' + nome + '" já está cadastrado.', 'error');
+      input.style.borderColor = 'var(--danger)';
+      input.style.boxShadow = '0 0 0 3px rgba(252,92,101,.25)';
+      input.focus(); input.select();
+      setTimeout(function() {
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+      }, 2000);
+      return;
+    }
 
     colaboradores.push({ id: gerarId(), nome: nome });
     saveStorage(LS_COLAB, colaboradores);
@@ -2708,6 +2755,7 @@
     fillGeralSelects();
     renderColaboradoresList();
     input.value = '';
+    input.focus();
     showToast('✅ Colaborador adicionado!', 'success');
   }
 
@@ -2748,12 +2796,22 @@
   function addPosto() {
     var input = document.getElementById('inputPosto');
     var nome  = input.value.trim();
-    if (!nome) return;
+    if (!nome) { input.focus(); return; }
 
     var existe = postos.some(function(p) {
       return p.nome.toLowerCase() === nome.toLowerCase();
     });
-    if (existe) { showToast('⚠️ Posto já cadastrado.', 'error'); return; }
+    if (existe) {
+      showToast('⚠️ Posto "' + nome + '" já está cadastrado.', 'error');
+      input.style.borderColor = 'var(--danger)';
+      input.style.boxShadow = '0 0 0 3px rgba(252,92,101,.25)';
+      input.focus(); input.select();
+      setTimeout(function() {
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+      }, 2000);
+      return;
+    }
 
     postos.push({ id: gerarId(), nome: nome });
     saveStorage(LS_POSTOS, postos);
@@ -2763,6 +2821,7 @@
     fillGeralSelects();
     renderPostosList();
     input.value = '';
+    input.focus();
     showToast('✅ Posto adicionado!', 'success');
   }
 
@@ -3002,9 +3061,19 @@
     var motivo = document.getElementById('edit-motivo').value;
     var block  = document.getElementById('edit-block-quem-faltou');
     var sel    = document.getElementById('edit-quemFaltou');
+    var label  = block.querySelector('.field-label');
     if (MOTIVOS_COM_FALTOU.indexOf(motivo) !== -1) {
       block.style.display = '';
-      sel.required = (motivo !== 'Cobertura de Férias');
+      if (motivo === 'Remanejamento Interno') {
+        if (label) label.innerHTML = '<span class="dot bg-danger"></span>🔀 Quem foi remanejado';
+        sel.required = true;
+      } else if (motivo === 'Cobertura de Férias') {
+        if (label) label.innerHTML = '<span class="dot bg-danger"></span>🚨 Quem faltou';
+        sel.required = false;
+      } else {
+        if (label) label.innerHTML = '<span class="dot bg-danger"></span>🚨 Quem faltou';
+        sel.required = true;
+      }
     } else {
       block.style.display = 'none';
       sel.required = false;
