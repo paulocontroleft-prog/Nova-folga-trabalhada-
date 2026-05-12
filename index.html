@@ -1117,7 +1117,7 @@
     padding-top: 10px;
     border-top: 1px solid rgba(255,255,255,.07);
   }
-  .btn-hist-edit, .btn-hist-del {
+  .btn-hist-edit, .btn-hist-del, .btn-hist-recibo {
     flex: 1;
     border: none;
     border-radius: 8px;
@@ -1133,7 +1133,13 @@
     justify-content: center;
     gap: 5px;
   }
-  .btn-hist-edit:active, .btn-hist-del:active { transform: scale(.97); }
+  .btn-hist-edit:active, .btn-hist-del:active, .btn-hist-recibo:active { transform: scale(.97); }
+  .btn-hist-recibo {
+    background: rgba(38,222,129,.12);
+    border: 1px solid rgba(38,222,129,.3);
+    color: var(--accent2);
+  }
+  .btn-hist-recibo:hover { background: rgba(38,222,129,.25); }
   .btn-hist-edit {
     background: rgba(69,170,242,.15);
     border: 1px solid rgba(69,170,242,.35);
@@ -2985,14 +2991,184 @@
                  faltouHtml +
                '</div>' +
                '<div class="hist-actions">' +
-                 '<button class="btn-hist-edit" data-id="' + r.id + '" data-tipo="' + r.tipo + '">✏️ Editar</button>' +
-                 '<button class="btn-hist-del"  data-id="' + r.id + '" data-tipo="' + r.tipo + '">🗑️ Excluir</button>' +
+                 '<button class="btn-hist-recibo" data-id="' + r.id + '" data-tipo="' + r.tipo + '">🧾 Recibo</button>' +
+                 '<button class="btn-hist-edit"   data-id="' + r.id + '" data-tipo="' + r.tipo + '">✏️ Editar</button>' +
+                 '<button class="btn-hist-del"    data-id="' + r.id + '" data-tipo="' + r.tipo + '">🗑️ Excluir</button>' +
                '</div>' +
              '</div>';
     }).join('');
   }
 
-  // ── Excluir FT ──────────────────────────────────
+  // ── Gerar Recibo Individual ──────────────────────
+  function gerarRecibo(id, tipo) {
+    var jsPDF = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDF) { showToast('❌ Biblioteca PDF não carregada.', 'error'); return; }
+
+    var r;
+    if (tipo === 'bico') {
+      r = getBicos().find(function(b) { return b.id === id; });
+    } else {
+      r = (JSON.parse(localStorage.getItem('ft_registros') || '[]')).find(function(f) { return f.id === id; });
+    }
+    if (!r) { showToast('❌ Lançamento não encontrado.', 'error'); return; }
+
+    var isBico     = (tipo === 'bico');
+    var colabNome  = isBico ? (r.colaborador || '—') : (r.substituto || '—');
+    var postoNome  = r.posto    || '—';
+    var horario    = r.horario  || '—';
+    var valor      = (r.valor   || 0).toFixed(2).replace('.', ',');
+    var motivo     = isBico ? 'Bico Fixo' : (r.motivo || '—');
+    var quemFaltou = (!isBico && r.quemFaltou) ? r.quemFaltou : null;
+    var dtLanc     = r.dataHora
+      ? new Date(r.dataHora).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' })
+      : '—';
+    var dataHoje   = new Date().toLocaleDateString('pt-BR');
+    var W = 210;
+
+    var doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+    // ── Fundo branco total ──
+    doc.setFillColor(255, 255, 255);
+    doc.rect(0, 0, W, 297, 'F');
+
+    // ── Cabeçalho colorido compacto ──
+    doc.setFillColor(13, 17, 35);
+    doc.rect(0, 0, W, 38, 'F');
+    doc.setDrawColor(247, 183, 49); doc.setLineWidth(1.2);
+    doc.line(0, 38, W, 38);
+
+    // Hexágono logo
+    var hcx = 20, hcy = 19, hr = 14;
+    var hexPts = [];
+    for (var hi = 0; hi < 6; hi++) {
+      var ang = Math.PI / 180 * (60 * hi - 30);
+      hexPts.push([hcx + hr * Math.cos(ang), hcy + hr * Math.sin(ang)]);
+    }
+    doc.setFillColor(10, 42, 100);
+    doc.setDrawColor(0, 200, 248); doc.setLineWidth(1);
+    doc.lines(
+      hexPts.slice(1).map(function(p, i) { return [p[0]-hexPts[i][0], p[1]-hexPts[i][1]]; })
+        .concat([[hexPts[0][0]-hexPts[5][0], hexPts[0][1]-hexPts[5][1]]]),
+      hexPts[0][0], hexPts[0][1], [1,1], 'FD', true
+    );
+    doc.setFont('helvetica','bold'); doc.setFontSize(11);
+    doc.setTextColor(255,255,255); doc.text('P', hcx-3.5, hcy+2.2);
+    doc.setTextColor(0,220,255);   doc.text('J', hcx+2.2, hcy+2.2);
+
+    // Marca texto
+    doc.setFont('helvetica','bold'); doc.setFontSize(11);
+    doc.setTextColor(0, 210, 255);
+    doc.text('PJ TECNOLOGIA E SISTEMAS', 36, 14);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+    doc.setTextColor(180, 200, 230);
+    doc.text('Inovação que conecta. Tecnologia que transforma.', 36, 20);
+
+    // Título do recibo à direita
+    doc.setFont('helvetica','bold'); doc.setFontSize(14);
+    doc.setTextColor(247, 183, 49);
+    doc.text('RECIBO DE ' + (isBico ? 'BICO FIXO' : 'FOLGA TRABALHADA'), W - 10, 14, { align: 'right' });
+    doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    doc.setTextColor(160, 175, 200);
+    doc.text('Emitido em: ' + dataHoje, W - 10, 21, { align: 'right' });
+
+    var y = 50;
+
+    // ── Caixa de identificação do colaborador ──
+    doc.setFillColor(245, 248, 255);
+    doc.setDrawColor(200, 210, 230); doc.setLineWidth(0.4);
+    doc.roundedRect(10, y, 190, 28, 3, 3, 'FD');
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+    doc.setTextColor(100, 110, 140);
+    doc.text('COLABORADOR', 18, y + 7);
+    doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.setTextColor(20, 30, 60);
+    doc.text(colabNome, 18, y + 17);
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+    doc.setTextColor(100, 110, 140);
+    doc.text('VALOR A RECEBER', W - 18, y + 7, { align: 'right' });
+    doc.setFont('helvetica','bold'); doc.setFontSize(16);
+    doc.setTextColor(20, 140, 70);
+    doc.text('R$ ' + valor, W - 18, y + 18, { align: 'right' });
+
+    y += 36;
+
+    // ── Detalhes do lançamento ──
+    var campos = [
+      { label: 'Posto de Trabalho', valor: postoNome },
+      { label: isBico ? 'Tipo' : 'Motivo',   valor: motivo   },
+      { label: 'Horário',           valor: horario  },
+      { label: 'Data do Serviço',   valor: dtLanc   }
+    ];
+    if (quemFaltou) {
+      var labelFaltou = motivo === 'Remanejamento Interno' ? 'Quem foi remanejado' : 'Quem faltou';
+      campos.push({ label: labelFaltou, valor: quemFaltou });
+    }
+
+    campos.forEach(function(c, i) {
+      var even = i % 2 === 0;
+      doc.setFillColor(even ? 250 : 255, even ? 252 : 255, even ? 255 : 255);
+      doc.setDrawColor(220, 225, 235); doc.setLineWidth(0.2);
+      doc.rect(10, y, 190, 11, 'FD');
+      doc.setFont('helvetica','bold'); doc.setFontSize(7);
+      doc.setTextColor(120, 130, 155);
+      doc.text(c.label.toUpperCase(), 18, y + 4.5);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5);
+      doc.setTextColor(30, 40, 65);
+      doc.text(String(c.valor), 18, y + 9.5);
+      y += 11;
+    });
+
+    y += 14;
+
+    // ── Texto de declaração ──
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+    doc.setTextColor(60, 70, 90);
+    var decl1 = 'Eu, ' + colabNome + ', declaro que recebi o valor de R$ ' + valor + ' referente ao';
+    var decl2 = (isBico ? 'serviço de Bico Fixo' : 'serviço de Folga Trabalhada (FT)') +
+                ' realizado em ' + dtLanc + ', no posto "' + postoNome + '", no horário ' + horario + '.';
+    doc.text(decl1, 105, y,     { align: 'center' });
+    doc.text(decl2, 105, y + 6, { align: 'center' });
+
+    y += 22;
+
+    // ── Campo de assinatura ──
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(180, 185, 200); doc.setLineWidth(0.5);
+    doc.roundedRect(25, y, 160, 42, 3, 3, 'FD');
+
+    // Linha de assinatura
+    doc.setDrawColor(60, 70, 100); doc.setLineWidth(0.7);
+    doc.line(40, y + 30, 170, y + 30);
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(8);
+    doc.setTextColor(80, 90, 120);
+    doc.text('ASSINATURA DO COLABORADOR', 105, y + 36, { align: 'center' });
+    doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    doc.setTextColor(30, 40, 70);
+    doc.text(colabNome, 105, y + 39.5, { align: 'center' });
+
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+    doc.setTextColor(130, 140, 160);
+    doc.text('Data: ______ / ______ / __________', 105, y + 46, { align: 'center' });
+
+    // ── Rodapé ──
+    doc.setDrawColor(200, 210, 225); doc.setLineWidth(0.3);
+    doc.line(10, 280, W - 10, 280);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.5);
+    doc.setTextColor(160, 170, 185);
+    doc.text('PJ Tecnologia e Sistemas  |  Documento gerado em: ' + dataHoje, 105, 285, { align: 'center' });
+    doc.text('Este recibo é válido como comprovante de pagamento de serviço prestado.', 105, 290, { align: 'center' });
+
+    var nomeArq = (isBico ? 'ReciboBico' : 'ReciboFT') + '_' +
+                  colabNome.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') + '_' +
+                  dtLanc.replace(/\//g, '-') + '.pdf';
+    doc.save(nomeArq);
+    showToast('🧾 Recibo gerado com sucesso!', 'success');
+  }
+
+
   function excluirFT(id) {
     if (!confirm('Excluir este lançamento? Esta ação não pode ser desfeita.')) return;
     var fts = JSON.parse(localStorage.getItem('ft_registros') || '[]');
@@ -3125,8 +3301,12 @@
 
   // Delegação de cliques no histList
   function onHistListClick(e) {
-    var btnEdit = e.target.closest('.btn-hist-edit');
-    var btnDel  = e.target.closest('.btn-hist-del');
+    var btnRecibo = e.target.closest('.btn-hist-recibo');
+    var btnEdit   = e.target.closest('.btn-hist-edit');
+    var btnDel    = e.target.closest('.btn-hist-del');
+    if (btnRecibo) {
+      gerarRecibo(btnRecibo.dataset.id, btnRecibo.dataset.tipo);
+    }
     if (btnEdit) {
       var tipo = btnEdit.dataset.tipo;
       if (tipo === 'bico') abrirEditarBico(btnEdit.dataset.id);
