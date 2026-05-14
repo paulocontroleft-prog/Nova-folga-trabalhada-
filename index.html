@@ -1687,6 +1687,126 @@
   .dp-action-btn:hover { background: rgba(0,105,92,.08); }
   .dp-action-btn.dp-cancel { color: #555; }
   .dp-action-btn.dp-clear  { color: #888; }
+
+  /* ── Motivo Picker Sheet ── */
+  .motivo-btn {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: .95rem;
+    padding: 12px 14px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    transition: border-color .2s;
+  }
+  .motivo-btn:hover { border-color: var(--accent4); }
+  .motivo-btn.has-value { border-color: var(--accent1); color: var(--accent1); }
+  .motivo-btn .mb-val { flex: 1; }
+  .motivo-btn .mb-arrow { color: var(--muted); font-size: .8rem; }
+
+  .motivo-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 9998;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .motivo-overlay.open { display: flex; }
+
+  .motivo-sheet {
+    background: #f0f4f4;
+    border-radius: 16px 16px 0 0;
+    width: 100%;
+    max-width: 480px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: sheetUp .2s ease;
+  }
+  @keyframes sheetUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  .motivo-sheet-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1a1a2e;
+    border-bottom: 1px solid #dde4e4;
+    cursor: pointer;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    width: 100%;
+    text-align: left;
+    font-family: 'Nunito', sans-serif;
+    transition: background .12s;
+  }
+  .motivo-sheet-item:hover { background: rgba(0,105,92,.07); }
+  .motivo-sheet-item:last-child { border-bottom: none; }
+  .motivo-sheet-item.selected { font-weight: 700; color: #00695c; }
+
+  .motivo-radio {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid #aaa;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .motivo-sheet-item.selected .motivo-radio {
+    border-color: #00695c;
+    background: #00695c;
+  }
+  .motivo-sheet-item.selected .motivo-radio::after {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #fff;
+  }
+
+  .motivo-outro-wrap {
+    padding: 8px 20px 16px;
+    background: #f0f4f4;
+    display: none;
+  }
+  .motivo-outro-wrap.open { display: block; }
+  .motivo-outro-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1.5px solid #00695c;
+    font-size: .95rem;
+    font-family: 'Nunito', sans-serif;
+    background: #fff;
+    color: #1a1a2e;
+    outline: none;
+  }
+  .motivo-outro-confirm {
+    margin-top: 8px;
+    width: 100%;
+    padding: 12px;
+    background: #00695c;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: .95rem;
+    font-weight: 700;
+    font-family: 'Nunito', sans-serif;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -1772,7 +1892,7 @@
           <div class="field-label col-orange">
             <span class="dot bg-orange"></span>&#x1F4AC; Motivo
           </div>
-          <select id="motivo" required>
+          <select id="motivo" required style="display:none;">
             <option value="">-- Selecione --</option>
             <option>Afastamento</option>
             <option>Atestado</option>
@@ -1783,7 +1903,12 @@
             <option>Remanejamento Interno</option>
             <option>Suspensão</option>
             <option>Treinamento</option>
+            <option id="motivo-outro-opt" value="__outro__">Outro</option>
           </select>
+          <button type="button" class="motivo-btn" id="motivoBtn">
+            <span class="mb-val" id="motivoBtnLabel">-- Selecione --</span>
+            <span class="mb-arrow">&#9660;</span>
+          </button>
         </div>
 
         <div class="field">
@@ -2367,7 +2492,7 @@
 
     <div class="field">
       <div class="field-label col-orange"><span class="dot bg-orange"></span>📌 Motivo</div>
-      <select id="edit-motivo">
+      <select id="edit-motivo" style="display:none;">
         <option>Afastamento</option>
         <option>Atestado</option>
         <option>Cobertura de Férias</option>
@@ -2377,7 +2502,12 @@
         <option>Remanejamento Interno</option>
         <option>Suspensão</option>
         <option>Treinamento</option>
+        <option id="edit-motivo-outro-opt" value="__outro__">Outro</option>
       </select>
+      <button type="button" class="motivo-btn" id="editMotivoBtn">
+        <span class="mb-val" id="editMotivoBtnLabel">-- Selecione --</span>
+        <span class="mb-arrow">&#9660;</span>
+      </button>
     </div>
 
     <div class="field">
@@ -2898,6 +3028,7 @@
       document.getElementById('ftForm').reset();
       setDefaultDateTime();
       handleMotivoChange();
+      syncMotivoBtn('motivo', 'motivoBtnLabel', 'motivoBtn');
       btn.disabled = false;
       btn.innerHTML = '&#x1F4BE; Registrar FT';
       // Atualiza histórico em background
@@ -3398,6 +3529,7 @@
     fillEditSel('edit-quemFaltou', colaboradores, ft.quemFaltou);
 
     document.getElementById('edit-motivo').value   = ft.motivo  || '';
+    syncMotivoBtn('edit-motivo', 'editMotivoBtnLabel', 'editMotivoBtn');
     document.getElementById('edit-horario').value  = ft.horario || '';
     document.getElementById('edit-valor').value    = ft.valor != null ? ft.valor : '';
     document.getElementById('edit-dataHora').value = ft.dataHora ? ft.dataHora.slice(0,16) : '';
@@ -5754,6 +5886,133 @@
   });
   // ── Fim Date Picker Engine ───────────────────────────────────────────────
 
+
+  // ── Motivo Picker Engine ────────────────────────────────────────────────
+  var _motivoCallback   = null;
+  var _motivoCurrentVal = '';
+
+  var MOTIVOS_FIXOS = [
+    '','Afastamento','Atestado','Cobertura de Férias','Extra',
+    'Falta de Efetivo','Folga do Vigia','Remanejamento Interno',
+    'Suspensão','Treinamento'
+  ];
+
+  function openMotivoSheet(currentVal, callback) {
+    _motivoCallback   = callback;
+    _motivoCurrentVal = currentVal || '';
+    // Reset outro
+    var outroWrap = document.getElementById('motivoOutroWrap');
+    var outroInput = document.getElementById('motivoOutroInput');
+    outroWrap.classList.remove('open');
+    outroInput.value = '';
+    // Marcar item atual
+    document.querySelectorAll('#motivoSheet .motivo-sheet-item').forEach(function(btn) {
+      var val = btn.dataset.val;
+      var isCurrent = (val === _motivoCurrentVal) ||
+        (val === '__outro__' && MOTIVOS_FIXOS.indexOf(_motivoCurrentVal) === -1 && _motivoCurrentVal !== '');
+      btn.classList.toggle('selected', isCurrent);
+      if (isCurrent && val === '__outro__') {
+        outroWrap.classList.add('open');
+        outroInput.value = _motivoCurrentVal;
+      }
+    });
+    document.getElementById('motivoOverlay').classList.add('open');
+  }
+
+  document.querySelectorAll('#motivoSheet .motivo-sheet-item').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var val = btn.dataset.val;
+      // Desmarcar todos
+      document.querySelectorAll('#motivoSheet .motivo-sheet-item').forEach(function(b) {
+        b.classList.remove('selected');
+      });
+      btn.classList.add('selected');
+      var outroWrap = document.getElementById('motivoOutroWrap');
+      var outroInput = document.getElementById('motivoOutroInput');
+      if (val === '__outro__') {
+        outroWrap.classList.add('open');
+        outroInput.focus();
+      } else {
+        outroWrap.classList.remove('open');
+        // Confirma imediatamente para opções fixas
+        if (_motivoCallback) _motivoCallback(val);
+        document.getElementById('motivoOverlay').classList.remove('open');
+      }
+    });
+  });
+
+  document.getElementById('motivoOutroConfirm').addEventListener('click', function() {
+    var val = document.getElementById('motivoOutroInput').value.trim();
+    if (!val) return;
+    if (_motivoCallback) _motivoCallback(val);
+    document.getElementById('motivoOverlay').classList.remove('open');
+  });
+
+  // Fechar ao clicar no fundo
+  document.getElementById('motivoOverlay').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+
+  // ── Bind botão Nova FT ────────────────────────────────────────────────────
+  (function() {
+    var btn   = document.getElementById('motivoBtn');
+    var lbl   = document.getElementById('motivoBtnLabel');
+    var sel   = document.getElementById('motivo');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      openMotivoSheet(sel.value, function(val) {
+        // Guarda no select hidden (para lógica existente)
+        if (MOTIVOS_FIXOS.indexOf(val) !== -1) {
+          sel.value = val;
+        } else {
+          // Valor customizado: adiciona option se não existir
+          var opt = document.getElementById('motivo-outro-opt');
+          if (opt) { opt.value = val; opt.textContent = val; }
+          sel.value = val;
+        }
+        lbl.textContent = val || '-- Selecione --';
+        btn.classList.toggle('has-value', !!val);
+        // Dispara change para lógica de quem faltou
+        sel.dispatchEvent(new Event('change'));
+      });
+    });
+  }());
+
+  // ── Bind botão Edit modal ─────────────────────────────────────────────────
+  (function() {
+    var btn = document.getElementById('editMotivoBtn');
+    var lbl = document.getElementById('editMotivoBtnLabel');
+    var sel = document.getElementById('edit-motivo');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      openMotivoSheet(sel.value, function(val) {
+        if (MOTIVOS_FIXOS.indexOf(val) !== -1) {
+          sel.value = val;
+        } else {
+          var opt = document.getElementById('edit-motivo-outro-opt');
+          if (opt) { opt.value = val; opt.textContent = val; }
+          sel.value = val;
+        }
+        lbl.textContent = val || '-- Selecione --';
+        btn.classList.toggle('has-value', !!val);
+        sel.dispatchEvent(new Event('change'));
+      });
+    });
+  }());
+
+  // ── Sincroniza label quando edit modal abre ────────────────────────────────
+  // Chamado após openEditModal preencher sel.value
+  function syncMotivoBtn(selId, btnLblId, btnId) {
+    var sel = document.getElementById(selId);
+    var lbl = document.getElementById(btnLblId);
+    var btn = document.getElementById(btnId);
+    if (!sel || !lbl || !btn) return;
+    var val = sel.value || '';
+    lbl.textContent = val || '-- Selecione --';
+    btn.classList.toggle('has-value', !!val);
+  }
+  // ── Fim Motivo Picker Engine ─────────────────────────────────────────────
+
 }());
 </script>
 
@@ -5903,6 +6162,49 @@ var FIRESTORE_DOC_ID     = 'dados';
       <button class="dp-action-btn" id="dpDefinir">Definir</button>
       <button class="dp-action-btn dp-cancel" id="dpCancelar">Cancelar</button>
       <button class="dp-action-btn dp-clear" id="dpLimpar">Limpar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Motivo Picker Sheet (compartilhado) ── -->
+<div class="motivo-overlay" id="motivoOverlay">
+  <div class="motivo-sheet" id="motivoSheet">
+    <button class="motivo-sheet-item" data-val="">-- Selecione --
+      <div class="motivo-radio"></div>
+    </button>
+    <button class="motivo-sheet-item" data-val="Afastamento">Afastamento
+      <div class="motivo-radio"></div>
+    </button>
+    <button class="motivo-sheet-item" data-val="Atestado">Atestado
+      <div class="motivo-radio"></div>
+    </button>
+    <button class="motivo-sheet-item" data-val="Cobertura de Férias">Cobertura de Férias
+      <div class="motivo-radio"></div>
+    </button>
+    <button class="motivo-sheet-item" data-val="Extra">Extra
+      <div class="motivo-radio"></div>
+    </button>
+    <button class="motivo-sheet-item" data-val="Falta de Efetivo">Falta de Efetivo
+      <div class="motivo-radio"></div>
+    </button>
+    <button class="motivo-sheet-item" data-val="Folga do Vigia">Folga do Vigia
+      <div class="motivo-radio"></div>
+    </button>
+    <button class="motivo-sheet-item" data-val="Remanejamento Interno">Remanejamento Interno
+      <div class="motivo-radio"></div>
+    </button>
+    <button class="motivo-sheet-item" data-val="Suspensão">Suspensão
+      <div class="motivo-radio"></div>
+    </button>
+    <button class="motivo-sheet-item" data-val="Treinamento">Treinamento
+      <div class="motivo-radio"></div>
+    </button>
+    <button class="motivo-sheet-item" data-val="__outro__">✏️ Outro (digitar)
+      <div class="motivo-radio"></div>
+    </button>
+    <div class="motivo-outro-wrap" id="motivoOutroWrap">
+      <input type="text" class="motivo-outro-input" id="motivoOutroInput" placeholder="Digite o motivo...">
+      <button type="button" class="motivo-outro-confirm" id="motivoOutroConfirm">Confirmar</button>
     </div>
   </div>
 </div>
