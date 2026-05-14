@@ -1232,6 +1232,37 @@
   .btn-edit-save:hover { opacity: .9; }
   .btn-edit-save:active { transform: scale(.97); }
 
+  /* ── Campo motivo outro (texto livre) ── */
+  .motivo-outro-wrap {
+    margin-top: 8px;
+    display: none;
+  }
+  .motivo-outro-wrap.visible { display: block; }
+
+  /* ── Campo de observação ── */
+  .obs-wrap {
+    margin-top: 8px;
+  }
+  textarea.obs-textarea {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: .92rem;
+    padding: 12px 14px;
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  textarea.obs-textarea:focus {
+    border-color: var(--accent3);
+    box-shadow: 0 0 0 3px rgba(69,170,242,.15);
+  }
+  textarea.obs-textarea::placeholder { color: var(--muted); }
+
   /* ── Campo de horário customizado ── */
   .horario-custom-wrap {
     margin-top: 8px;
@@ -1630,7 +1661,20 @@
             <option>Remanejamento Interno</option>
             <option>Suspensão</option>
             <option>Treinamento</option>
+            <option value="__outro__">&#x270F;&#xFE0F; Outro (digitar)</option>
           </select>
+          <div class="motivo-outro-wrap" id="motivo-outro-wrap-ft">
+            <input type="text" id="motivo-outro-ft" placeholder="Descreva o motivo…" maxlength="100">
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label col-blue">
+            <span class="dot bg-blue"></span>&#x1F4DD; Observação <span style="font-size:.7rem;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(opcional)</span>
+          </div>
+          <div class="obs-wrap">
+            <textarea class="obs-textarea" id="observacao" placeholder="Informações adicionais sobre este lançamento…" maxlength="300"></textarea>
+          </div>
         </div>
 
         <div class="field">
@@ -2184,7 +2228,18 @@
         <option>Remanejamento Interno</option>
         <option>Suspensão</option>
         <option>Treinamento</option>
+        <option value="__outro__">✏️ Outro (digitar)</option>
       </select>
+      <div class="motivo-outro-wrap" id="motivo-outro-wrap-edit">
+        <input type="text" id="motivo-outro-edit" placeholder="Descreva o motivo…" maxlength="100">
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label col-blue"><span class="dot bg-blue"></span>📝 Observação <span style="font-size:.7rem;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(opcional)</span></div>
+      <div class="obs-wrap">
+        <textarea class="obs-textarea" id="edit-observacao" placeholder="Informações adicionais…" maxlength="300"></textarea>
+      </div>
     </div>
 
     <div class="field">
@@ -2592,17 +2647,29 @@
   // Falta de Efetivo e Extra e Treinamento NÃO exibem "Quem faltou"
 
   function handleMotivoChange() {
-    var motivo      = document.getElementById('motivo').value;
+    var sel         = document.getElementById('motivo');
+    var motivo      = sel.value;
+    var outroWrap   = document.getElementById('motivo-outro-wrap-ft');
+    var outroInput  = document.getElementById('motivo-outro-ft');
     var blockFaltou = document.getElementById('block-quem-faltou');
     var selFaltou   = document.getElementById('quemFaltou');
     var hintFaltou  = document.getElementById('hint-quem-faltou');
-    // Label dinâmica do campo
     var labelFaltou = blockFaltou.querySelector('.field-label');
 
-    if (motivo && MOTIVOS_COM_FALTOU.indexOf(motivo) !== -1) {
-      blockFaltou.classList.remove('hidden');
+    // Exibe/oculta campo de texto livre
+    if (motivo === '__outro__') {
+      outroWrap.classList.add('visible');
+      outroInput.focus();
+    } else {
+      outroWrap.classList.remove('visible');
+      outroInput.value = '';
+    }
 
-      // Altera label conforme motivo
+    // Valor efetivo para lógica de "quem faltou"
+    var motivoEfetivo = (motivo === '__outro__') ? (outroInput.value.trim() || '') : motivo;
+
+    if (motivo && motivo !== '__outro__' && MOTIVOS_COM_FALTOU.indexOf(motivo) !== -1) {
+      blockFaltou.classList.remove('hidden');
       if (motivo === 'Remanejamento Interno') {
         labelFaltou.innerHTML = '<span class="dot bg-danger"></span>🔀 Quem foi remanejado';
         hintFaltou.textContent = '';
@@ -2630,7 +2697,10 @@
   function submitForm(e) {
     e.preventDefault();
 
-    var motivo     = document.getElementById('motivo').value;
+    var motivoSel  = document.getElementById('motivo').value;
+    var motivoOtro = document.getElementById('motivo-outro-ft').value.trim();
+    var motivo     = (motivoSel === '__outro__') ? motivoOtro : motivoSel;
+    var observacao = (document.getElementById('observacao').value || '').trim();
     var posto      = document.getElementById('posto').value;
     var horario    = document.getElementById('horario').value;
     var substituto = document.getElementById('substituto').value;
@@ -2638,8 +2708,12 @@
     var valor      = document.getElementById('valor').value;
     var dataHora   = document.getElementById('dataHora').value;
 
-    if (!posto || !motivo || !horario || !substituto || !dataHora) {
+    if (!posto || !motivoSel || !horario || !substituto || !dataHora) {
       showToast('⚠️ Preencha todos os campos obrigatórios.', 'error');
+      return;
+    }
+    if (motivoSel === '__outro__' && !motivoOtro) {
+      showToast('⚠️ Descreva o motivo no campo de texto.', 'error');
       return;
     }
     if (MOTIVOS_COM_FALTOU.indexOf(motivo) !== -1 && motivo !== 'Cobertura de Férias' && !quemFaltou) {
@@ -2689,6 +2763,7 @@
         horario:     horario,
         substituto:  substituto || null,
         quemFaltou:  quemFaltou || null,
+        observacao:  observacao || null,
         valor:       parseFloat(valor) || 0,
         dataHora:    dataHora,
         criadoEm:    new Date().toISOString()
@@ -2990,6 +3065,7 @@
                  '<span class="hist-data">📅 ' + dtStr + '</span>' +
                  faltouHtml +
                '</div>' +
+               (r.observacao ? '<div style="margin-top:7px;padding:6px 10px;background:rgba(69,170,242,.08);border-left:3px solid rgba(69,170,242,.5);border-radius:6px;font-size:.78rem;color:var(--muted);line-height:1.4;">📝 ' + escHtml(r.observacao) + '</div>' : '') +
                '<div class="hist-actions">' +
                  '<button class="btn-hist-recibo" data-id="' + r.id + '" data-tipo="' + r.tipo + '">🧾 Recibo</button>' +
                  '<button class="btn-hist-edit"   data-id="' + r.id + '" data-tipo="' + r.tipo + '">✏️ Editar</button>' +
@@ -3282,21 +3358,49 @@
     fillEditSel('edit-substituto', colaboradores, ft.substituto);
     fillEditSel('edit-quemFaltou', colaboradores, ft.quemFaltou);
 
-    document.getElementById('edit-motivo').value   = ft.motivo  || '';
-    document.getElementById('edit-horario').value  = ft.horario || '';
-    document.getElementById('edit-valor').value    = ft.valor != null ? ft.valor : '';
-    document.getElementById('edit-dataHora').value = ft.dataHora ? ft.dataHora.slice(0,16) : '';
+    // Preenche motivo — se não está na lista padrão, usa opção "Outro"
+    var motivosPadrao = ['Afastamento','Atestado','Cobertura de Férias','Extra','Falta de Efetivo','Folga do Vigia','Remanejamento Interno','Suspensão','Treinamento'];
+    var motivoVal     = ft.motivo || '';
+    var editMotivoSel = document.getElementById('edit-motivo');
+    var outroWrapEdit = document.getElementById('motivo-outro-wrap-edit');
+    var outroInputEdit= document.getElementById('motivo-outro-edit');
+    if (motivoVal && motivosPadrao.indexOf(motivoVal) === -1) {
+      editMotivoSel.value = '__outro__';
+      outroWrapEdit.classList.add('visible');
+      outroInputEdit.value = motivoVal;
+    } else {
+      editMotivoSel.value = motivoVal;
+      outroWrapEdit.classList.remove('visible');
+      outroInputEdit.value = '';
+    }
+
+    document.getElementById('edit-horario').value    = ft.horario || '';
+    document.getElementById('edit-valor').value      = ft.valor != null ? ft.valor : '';
+    document.getElementById('edit-dataHora').value   = ft.dataHora ? ft.dataHora.slice(0,16) : '';
+    document.getElementById('edit-observacao').value = ft.observacao || '';
 
     syncEditMotivoBlock();
     document.getElementById('modalEditFT').classList.add('show');
   }
 
   function syncEditMotivoBlock() {
-    var motivo = document.getElementById('edit-motivo').value;
-    var block  = document.getElementById('edit-block-quem-faltou');
-    var sel    = document.getElementById('edit-quemFaltou');
-    var label  = block.querySelector('.field-label');
-    if (MOTIVOS_COM_FALTOU.indexOf(motivo) !== -1) {
+    var motivoSel  = document.getElementById('edit-motivo').value;
+    var outroWrap  = document.getElementById('motivo-outro-wrap-edit');
+    var outroInput = document.getElementById('motivo-outro-edit');
+    var block      = document.getElementById('edit-block-quem-faltou');
+    var sel        = document.getElementById('edit-quemFaltou');
+    var label      = block.querySelector('.field-label');
+
+    // Exibe/oculta campo texto livre
+    if (motivoSel === '__outro__') {
+      outroWrap.classList.add('visible');
+    } else {
+      outroWrap.classList.remove('visible');
+      outroInput.value = '';
+    }
+
+    var motivo = (motivoSel === '__outro__') ? '' : motivoSel;
+    if (motivo && MOTIVOS_COM_FALTOU.indexOf(motivo) !== -1) {
       block.style.display = '';
       if (motivo === 'Remanejamento Interno') {
         if (label) label.innerHTML = '<span class="dot bg-danger"></span>🔀 Quem foi remanejado';
@@ -3316,16 +3420,22 @@
   }
 
   function salvarEditFT() {
-    var posto      = document.getElementById('edit-posto').value;
-    var motivo     = document.getElementById('edit-motivo').value;
-    var horario    = document.getElementById('edit-horario').value;
-    var substituto = document.getElementById('edit-substituto').value;
-    var quemFaltou = document.getElementById('edit-quemFaltou').value;
-    var valor      = document.getElementById('edit-valor').value;
-    var dataHora   = document.getElementById('edit-dataHora').value;
+    var posto       = document.getElementById('edit-posto').value;
+    var motivoSel   = document.getElementById('edit-motivo').value;
+    var motivoOtro  = document.getElementById('motivo-outro-edit').value.trim();
+    var motivo      = (motivoSel === '__outro__') ? motivoOtro : motivoSel;
+    var observacao  = (document.getElementById('edit-observacao').value || '').trim();
+    var horario     = document.getElementById('edit-horario').value;
+    var substituto  = document.getElementById('edit-substituto').value;
+    var quemFaltou  = document.getElementById('edit-quemFaltou').value;
+    var valor       = document.getElementById('edit-valor').value;
+    var dataHora    = document.getElementById('edit-dataHora').value;
 
-    if (!posto || !motivo || !horario || !substituto || !dataHora) {
+    if (!posto || !motivoSel || !horario || !substituto || !dataHora) {
       showToast('⚠️ Preencha todos os campos obrigatórios.', 'error'); return;
+    }
+    if (motivoSel === '__outro__' && !motivoOtro) {
+      showToast('⚠️ Descreva o motivo no campo de texto.', 'error'); return;
     }
     if (MOTIVOS_COM_FALTOU.indexOf(motivo) !== -1 && motivo !== 'Cobertura de Férias' && !quemFaltou) {
       showToast('⚠️ Informe quem faltou.', 'error'); return;
@@ -3341,6 +3451,7 @@
         horario:    horario,
         substituto: substituto,
         quemFaltou: quemFaltou || null,
+        observacao: observacao || null,
         valor:      parseFloat(valor) || 0,
         dataHora:   dataHora,
         criadoEm:   ft.criadoEm
@@ -4553,9 +4664,14 @@
 
     // Formulário FT
     document.getElementById('motivo').addEventListener('change', handleMotivoChange);
+    document.getElementById('motivo-outro-ft').addEventListener('input', function() {
+      // Atualiza lógica de quem faltou se necessário (motivo livre não ativa o bloco)
+    });
     document.getElementById('ftForm').addEventListener('submit', submitForm);
     document.getElementById('btnLimpar').addEventListener('click', function() {
       document.getElementById('ftForm').reset();
+      document.getElementById('motivo-outro-wrap-ft').classList.remove('visible');
+      document.getElementById('observacao').value = '';
       setDefaultDateTime();
       handleMotivoChange();
     });
