@@ -2091,6 +2091,32 @@
           <select id="bico-posto" required>
             <option value="">-- Selecione --</option>
           </select>
+          <!-- Botão inline para cadastrar novo posto -->
+          <div id="bico-novo-posto-wrap" style="margin-top:8px;">
+            <button type="button" id="btn-bico-novo-posto-toggle"
+              style="display:inline-flex;align-items:center;gap:5px;background:none;border:1.5px dashed rgba(247,183,49,.4);border-radius:8px;color:var(--accent1);font-family:'Exo 2',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.3px;padding:6px 14px;cursor:pointer;transition:border-color .2s,background .2s;width:100%;justify-content:center;">
+              &#x2795; Novo posto de bico
+            </button>
+            <div id="bico-novo-posto-input-wrap" style="display:none;margin-top:6px;">
+              <div style="display:flex;gap:6px;">
+                <input type="text" id="bico-novo-posto-input" placeholder="Nome do posto…" maxlength="80"
+                  style="flex:1;background:var(--input-bg);border:1.5px solid var(--accent1);border-radius:10px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.9rem;padding:10px 14px;outline:none;box-shadow:0 0 0 3px rgba(247,183,49,.15);">
+                <button type="button" id="btn-bico-novo-posto-add"
+                  style="border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent1),var(--accent4));color:#0d1117;font-family:'Exo 2',sans-serif;font-size:.85rem;font-weight:700;padding:10px 16px;cursor:pointer;white-space:nowrap;transition:opacity .2s,transform .15s;flex-shrink:0;">
+                  &#x2714; Salvar
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- Sugestão inteligente -->
+          <div id="bico-smart-hint" style="display:none;margin-top:10px;background:rgba(165,94,234,.08);border:1px solid rgba(165,94,234,.3);border-radius:10px;padding:10px 14px;">
+            <div style="font-family:'Exo 2',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:1px;color:#a55eea;margin-bottom:6px;text-transform:uppercase;">&#x1F9E0; Sugestão inteligente</div>
+            <div id="bico-smart-body" style="font-size:.8rem;color:var(--muted);line-height:1.6;"></div>
+            <button type="button" id="btn-bico-smart-apply"
+              style="margin-top:8px;border:none;border-radius:8px;background:rgba(165,94,234,.18);border:1px solid rgba(165,94,234,.4);color:#a55eea;font-family:'Exo 2',sans-serif;font-size:.72rem;font-weight:700;padding:6px 14px;cursor:pointer;transition:background .2s;width:100%;">
+              &#x26A1; Aplicar sugestão
+            </button>
+          </div>
         </div>
 
         <div class="field">
@@ -4702,6 +4728,8 @@
         document.getElementById('bicoForm').reset();
         var dh = document.getElementById('bico-dataHora');
         if (dh) { var n = new Date(); n.setSeconds(0,0); dh.value = n.toISOString().slice(0,16); }
+        var hint = document.getElementById('bico-smart-hint');
+        if (hint) hint.style.display = 'none';
       });
     }
 
@@ -4724,6 +4752,17 @@
     fillBicoSelects();
     var dhBico = document.getElementById('bico-dataHora');
     if (dhBico) { var nb = new Date(); nb.setSeconds(0,0); dhBico.value = nb.toISOString().slice(0,16); }
+
+    // Aprendizado inteligente — mostra sugestão ao selecionar posto
+    var bicoPosto = document.getElementById('bico-posto');
+    if (bicoPosto) {
+      bicoPosto.addEventListener('change', function() {
+        mostrarSmartHint(this.value);
+      });
+    }
+
+    // Botão "+ Novo Posto" inline na aba Bico Fixo
+    initBicoNovoPosto();
 
     // Delegação p/ botões de remoção nas listas
     document.getElementById('listaColaboradores').addEventListener('click', onListClick);
@@ -4903,6 +4942,130 @@
     }
   }
 
+  // ── Aprendizado inteligente do Bico Fixo ────────────────
+  // Analisa histórico de lançamentos de um posto e retorna sugestões
+  function getBicoSugestao(postoNome) {
+    if (!postoNome) return null;
+    var bicos = getBicos().filter(function(b) {
+      return (b.posto || '').toLowerCase() === postoNome.toLowerCase();
+    });
+    if (!bicos.length) return null;
+
+    // Colaborador mais frequente
+    var colabCount = {};
+    bicos.forEach(function(b) {
+      var c = b.colaborador || '';
+      colabCount[c] = (colabCount[c] || 0) + 1;
+    });
+    var topColab = Object.keys(colabCount).sort(function(a,b){ return colabCount[b]-colabCount[a]; })[0] || '';
+
+    // Horário mais frequente
+    var horCount = {};
+    bicos.forEach(function(b) {
+      var h = b.horario || '';
+      horCount[h] = (horCount[h] || 0) + 1;
+    });
+    var topHorario = Object.keys(horCount).sort(function(a,b){ return horCount[b]-horCount[a]; })[0] || '';
+
+    // Valor médio arredondado para 2 casas
+    var valores = bicos.map(function(b){ return b.valor || 0; }).filter(function(v){ return v > 0; });
+    var valorMedio = valores.length ? (valores.reduce(function(s,v){ return s+v; },0) / valores.length) : 0;
+
+    return {
+      colaborador: topColab,
+      horario: topHorario,
+      valor: valorMedio,
+      totalRegistros: bicos.length
+    };
+  }
+
+  function mostrarSmartHint(postoNome) {
+    var hintBox  = document.getElementById('bico-smart-hint');
+    var hintBody = document.getElementById('bico-smart-body');
+    var btnApply = document.getElementById('btn-bico-smart-apply');
+    if (!hintBox || !hintBody || !btnApply) return;
+
+    var sug = getBicoSugestao(postoNome);
+    if (!sug) { hintBox.style.display = 'none'; return; }
+
+    var lines = [];
+    if (sug.colaborador) lines.push('👤 <strong>Colaborador:</strong> ' + escHtml(sug.colaborador));
+    if (sug.horario)     lines.push('🕐 <strong>Horário:</strong> ' + escHtml(sug.horario));
+    if (sug.valor > 0)   lines.push('💰 <strong>Valor:</strong> R$ ' + sug.valor.toFixed(2).replace('.',','));
+    lines.push('<span style="font-size:.72rem;opacity:.7;">Baseado em ' + sug.totalRegistros + ' lançamento' + (sug.totalRegistros !== 1 ? 's' : '') + ' anteriores</span>');
+
+    hintBody.innerHTML = lines.join('<br>');
+    hintBox.style.display = 'block';
+
+    btnApply.onclick = function() {
+      if (sug.colaborador) {
+        var selColab = document.getElementById('bico-colaborador');
+        if (selColab) selColab.value = sug.colaborador;
+      }
+      if (sug.horario) {
+        var selHor = document.getElementById('bico-horario');
+        if (selHor) selHor.value = sug.horario;
+      }
+      if (sug.valor > 0) {
+        var inpValor = document.getElementById('bico-valor');
+        if (inpValor) inpValor.value = sug.valor.toFixed(2);
+      }
+      hintBox.style.display = 'none';
+      showToast('✅ Sugestão aplicada!', 'success');
+    };
+  }
+
+  // Toggle do painel "+ Novo Posto" no Bico Fixo
+  function initBicoNovoPosto() {
+    var btnToggle = document.getElementById('btn-bico-novo-posto-toggle');
+    var inputWrap = document.getElementById('bico-novo-posto-input-wrap');
+    var inp       = document.getElementById('bico-novo-posto-input');
+    var btnAdd    = document.getElementById('btn-bico-novo-posto-add');
+    if (!btnToggle || !inputWrap || !inp || !btnAdd) return;
+
+    btnToggle.addEventListener('click', function() {
+      var open = inputWrap.style.display === 'none';
+      inputWrap.style.display = open ? 'block' : 'none';
+      btnToggle.innerHTML = open ? '&#x2212; Cancelar' : '&#x2795; Novo posto de bico';
+      if (open) setTimeout(function(){ inp.focus(); }, 50);
+    });
+
+    function doAdd() {
+      var nome = inp.value.trim();
+      if (!nome) { inp.focus(); return; }
+      var existe = postos.some(function(p) { return p.nome.toLowerCase() === nome.toLowerCase(); });
+      if (existe) {
+        showToast('⚠️ Posto "' + nome + '" já está cadastrado.', 'error');
+        inp.style.borderColor = 'var(--danger)';
+        setTimeout(function(){ inp.style.borderColor = ''; }, 2000);
+        return;
+      }
+      postos.push({ id: gerarId(), nome: nome });
+      saveStorage(LS_POSTOS, postos);
+      fillSelect('posto', postos);
+      fillBicoSelects();
+      fillDashSelect();
+      fillGeralSelects();
+      renderPostosList();
+      // Seleciona o novo posto automaticamente
+      var selPosto = document.getElementById('bico-posto');
+      if (selPosto) selPosto.value = nome;
+      inp.value = '';
+      inputWrap.style.display = 'none';
+      btnToggle.innerHTML = '&#x2795; Novo posto de bico';
+      showToast('✅ Posto "' + nome + '" adicionado e selecionado!', 'success');
+    }
+
+    btnAdd.addEventListener('click', doAdd);
+    inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); doAdd(); }
+      if (e.key === 'Escape') {
+        inputWrap.style.display = 'none';
+        btnToggle.innerHTML = '&#x2795; Novo posto de bico';
+      }
+    });
+  }
+
   // Submit do formulário Bico Fixo
   function submitBico(e) {
     e.preventDefault();
@@ -4963,6 +5126,9 @@
         var n = new Date(); n.setSeconds(0,0);
         dh.value = n.toISOString().slice(0,16);
       }
+      // Oculta sugestão
+      var hint = document.getElementById('bico-smart-hint');
+      if (hint) hint.style.display = 'none';
       btn.disabled = false;
       btn.innerHTML = '&#x1F4BE; Registrar Bico';
       // Atualiza histórico se visível
