@@ -2081,6 +2081,59 @@
       Use a aba <strong>Cadastros</strong> para gerenciar postos e colaboradores.
     </div>
 
+    <!-- ── Card: Postos Monitorados ── -->
+    <div id="bico-postos-monitorados-card" style="
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:16px 18px;
+      margin-bottom:16px;
+      box-shadow:var(--shadow);
+    ">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1rem;">🔔</span>
+          <span style="font-family:'Exo 2',sans-serif;font-size:.78rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--accent3);">Postos Monitorados</span>
+        </div>
+        <button id="btn-bico-add-posto-monitorado" style="
+          display:inline-flex;align-items:center;gap:5px;
+          border:none;border-radius:9px;
+          background:linear-gradient(135deg,var(--accent3),#1a6fc4);
+          color:#fff;
+          font-family:'Exo 2',sans-serif;font-size:.72rem;font-weight:700;
+          letter-spacing:.3px;padding:7px 14px;cursor:pointer;
+          transition:opacity .2s,transform .15s;white-space:nowrap;flex-shrink:0;
+        ">&#x2795; Novo Posto</button>
+      </div>
+
+      <!-- Lista dos postos monitorados -->
+      <div id="bico-postos-monitorados-list" style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px;"></div>
+
+      <!-- Input inline para adicionar novo posto monitorado -->
+      <div id="bico-add-posto-mon-wrap" style="display:none;margin-bottom:12px;">
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="bico-add-posto-mon-input" placeholder="Nome do posto a monitorar…" maxlength="80" style="
+            flex:1;background:var(--input-bg);border:1.5px solid var(--accent3);
+            border-radius:10px;color:var(--text);font-family:'Nunito',sans-serif;
+            font-size:.88rem;padding:9px 14px;outline:none;
+            box-shadow:0 0 0 3px rgba(69,170,242,.12);
+          ">
+          <button type="button" id="btn-bico-add-posto-mon-salvar" style="
+            border:none;border-radius:10px;
+            background:linear-gradient(135deg,var(--accent3),#1a6fc4);
+            color:#fff;font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:700;
+            padding:9px 16px;cursor:pointer;white-space:nowrap;flex-shrink:0;
+            transition:opacity .2s,transform .15s;
+          ">✔ Salvar</button>
+          <button type="button" id="btn-bico-add-posto-mon-cancelar" style="
+            border:1.5px solid var(--border);border-radius:10px;background:transparent;
+            color:var(--muted);font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:700;
+            padding:9px 12px;cursor:pointer;white-space:nowrap;flex-shrink:0;
+          ">✕</button>
+        </div>
+      </div>
+    </div>
+
     <div class="form-card">
       <form id="bicoForm" novalidate>
 
@@ -6027,7 +6080,8 @@ var FIRESTORE_DOC_ID     = 'dados';
       Defina os postos monitorados e os períodos a verificar. O alerta dispara automaticamente conforme a <strong style="color:#f7b731;">escala real de cada posto</strong>:<br>
       📍 <strong style="color:#e8edf5;">Jaguary / Garden</strong>: Seg–Qui 17h, <strong style="color:#f7b731;">Sex 16h</strong>, Sáb–Dom rendição 24h<br>
       📍 <strong style="color:#e8edf5;">André Rossi</strong>: Seg–Sex 17h, Sáb–Dom rendição 24h<br>
-      📍 <strong style="color:#e8edf5;">Milfarma</strong>: 18h todo dia, FT apenas em dias <strong style="color:#f7b731;">ímpares</strong>
+      📍 <strong style="color:#e8edf5;">Milfarma</strong>: 18h todo dia, FT apenas em dias <strong style="color:#f7b731;">ímpares</strong><br>
+      📍 <strong style="color:#e8edf5;">Marangone</strong>: rendição 24h todos os dias — Dia 06→18 / Noite 18→06
     </div>
 
     <!-- Toggle Dia / Noite -->
@@ -6067,8 +6121,70 @@ var FIRESTORE_DOC_ID     = 'dados';
       ">+ Adicionar</button>
     </div>
 
+    <!-- ── Escalas de Turnos ── -->
+    <div style="border-top:1px solid #2a3347;margin-top:4px;padding-top:18px;margin-bottom:6px;">
+      <div style="font-family:'Exo 2',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8b97b0;margin-bottom:6px;">
+        🗓️ Escalas de Turnos por Posto
+      </div>
+      <div style="font-size:.75rem;color:#8b97b0;margin-bottom:12px;line-height:1.5;">
+        Configure os horários de entrada de cada posto para o sistema detectar FTs pendentes.
+      </div>
+
+      <!-- Seletor de posto para editar escala -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <select id="ft-escala-select-posto" style="flex:1;background:#10151e;border:1.5px solid #2a3347;border-radius:10px;color:#e8edf5;font-family:'Nunito',sans-serif;font-size:.88rem;padding:10px 12px;outline:none;appearance:none;-webkit-appearance:none;">
+          <option value="">— Selecione um posto —</option>
+        </select>
+        <button id="ft-escala-btn-ver" style="border:none;border-radius:10px;background:linear-gradient(135deg,#45aaf2,#1a6fc4);color:#fff;font-family:'Exo 2',sans-serif;font-size:.8rem;font-weight:700;padding:10px 14px;cursor:pointer;white-space:nowrap;">
+          ✏️ Editar
+        </button>
+      </div>
+
+      <!-- Painel de edição da escala do posto -->
+      <div id="ft-escala-editor" style="display:none;">
+        <div id="ft-escala-posto-nome" style="font-family:'Exo 2',sans-serif;font-size:.88rem;font-weight:800;color:#45aaf2;margin-bottom:12px;"></div>
+
+        <!-- Tabela de turnos por dia -->
+        <div id="ft-escala-dias-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
+
+        <!-- Adicionar turno -->
+        <div style="background:#10151e;border:1px solid #2a3347;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+          <div style="font-family:'Exo 2',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8b97b0;margin-bottom:10px;">➕ Adicionar Turno</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+            <select id="ft-escala-novo-dia" style="flex:1;min-width:90px;background:#161b22;border:1.5px solid #2a3347;border-radius:8px;color:#e8edf5;font-family:'Nunito',sans-serif;font-size:.82rem;padding:8px 10px;outline:none;appearance:none;-webkit-appearance:none;">
+              <option value="0">Domingo</option>
+              <option value="1">Segunda</option>
+              <option value="2">Terça</option>
+              <option value="3">Quarta</option>
+              <option value="4">Quinta</option>
+              <option value="5">Sexta</option>
+              <option value="6">Sábado</option>
+            </select>
+            <input type="text" id="ft-escala-novo-entrada" placeholder="Entrada ex: 18:00" maxlength="5"
+              style="flex:1;min-width:90px;background:#161b22;border:1.5px solid #2a3347;border-radius:8px;color:#e8edf5;font-family:'Nunito',sans-serif;font-size:.82rem;padding:8px 10px;outline:none;">
+            <input type="text" id="ft-escala-novo-saida" placeholder="Saída ex: 06:00" maxlength="5"
+              style="flex:1;min-width:90px;background:#161b22;border:1.5px solid #2a3347;border-radius:8px;color:#e8edf5;font-family:'Nunito',sans-serif;font-size:.82rem;padding:8px 10px;outline:none;">
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <select id="ft-escala-novo-periodo" style="flex:1;background:#161b22;border:1.5px solid #2a3347;border-radius:8px;color:#e8edf5;font-family:'Nunito',sans-serif;font-size:.82rem;padding:8px 10px;outline:none;appearance:none;-webkit-appearance:none;">
+              <option value="dia">☀️ Período Diurno</option>
+              <option value="noite">🌙 Período Noturno</option>
+            </select>
+            <button id="ft-escala-btn-add-turno" style="border:none;border-radius:8px;background:linear-gradient(135deg,#26de81,#20a862);color:#0d1117;font-family:'Exo 2',sans-serif;font-size:.78rem;font-weight:700;padding:9px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+              ✔ Salvar
+            </button>
+          </div>
+          <div style="font-size:.72rem;color:#8b97b0;">💡 Saída após meia-noite (ex: 18:00→06:00) é detectada automaticamente.</div>
+        </div>
+
+        <button id="ft-escala-btn-limpar" style="width:100%;border:1.5px dashed rgba(252,92,101,.4);border-radius:8px;background:rgba(252,92,101,.07);color:#fc5c65;font-family:'Exo 2',sans-serif;font-size:.75rem;font-weight:700;padding:9px;cursor:pointer;margin-bottom:2px;">
+          🗑️ Remover toda a escala deste posto
+        </button>
+      </div>
+    </div>
+
     <!-- Botões fechar -->
-    <div style="display:flex;gap:10px;">
+    <div style="display:flex;gap:10px;margin-top:14px;">
       <button id="ft-config-close" style="
         flex:1;
         border:1.5px solid #2a3347;
@@ -6188,12 +6304,25 @@ var FIRESTORE_DOC_ID     = 'dados';
         var dia = parseInt(dataRef.split('-')[2], 10);
         return dia % 2 !== 0;
       }
+    },
+
+    'Marangone': {
+      /* Escala 24h todos os dias: Dia 06→18 + Noite 18→06 */
+      semana: [
+        /* Dom */ [{ e:6*60, s:18*60, nd:false, per:'dia' }, { e:18*60, s:6*60, nd:true, per:'noite' }],
+        /* Seg */ [{ e:6*60, s:18*60, nd:false, per:'dia' }, { e:18*60, s:6*60, nd:true, per:'noite' }],
+        /* Ter */ [{ e:6*60, s:18*60, nd:false, per:'dia' }, { e:18*60, s:6*60, nd:true, per:'noite' }],
+        /* Qua */ [{ e:6*60, s:18*60, nd:false, per:'dia' }, { e:18*60, s:6*60, nd:true, per:'noite' }],
+        /* Qui */ [{ e:6*60, s:18*60, nd:false, per:'dia' }, { e:18*60, s:6*60, nd:true, per:'noite' }],
+        /* Sex */ [{ e:6*60, s:18*60, nd:false, per:'dia' }, { e:18*60, s:6*60, nd:true, per:'noite' }],
+        /* Sáb */ [{ e:6*60, s:18*60, nd:false, per:'dia' }, { e:18*60, s:6*60, nd:true, per:'noite' }]
+      ]
     }
   };
 
   /* ── Config padrão ─────────────────────────────────────── */
   var DEFAULT_CONFIG = {
-    postos:       ['Garden', 'Obra Milfarma', 'Jaguary', 'André Rossi'],
+    postos:       ['Garden', 'Obra Milfarma', 'Jaguary', 'André Rossi', 'Marangone'],
     alertarDia:   true,
     alertarNoite: true
   };
@@ -6254,6 +6383,7 @@ var FIRESTORE_DOC_ID     = 'dados';
   /* ── Retorna escala do posto (nome normalizado) ─────────── */
   function getEscalaPosto(posto) {
     var normPosto = norm(posto);
+    // Prioridade: ESCALAS_POSTOS em memória (já inclui custom carregadas no init)
     for (var k in ESCALAS_POSTOS) {
       if (norm(k) === normPosto) return ESCALAS_POSTOS[k];
     }
@@ -6468,6 +6598,7 @@ var FIRESTORE_DOC_ID     = 'dados';
     var m = agora.getMinutes();
     if (m >= 5) return false;
     var horarios = {};
+    // ESCALAS_POSTOS já inclui as customizadas (carregadas no init)
     for (var posto in ESCALAS_POSTOS) {
       var semana = ESCALAS_POSTOS[posto].semana || [];
       semana.forEach(function (turnos) {
@@ -6510,6 +6641,237 @@ var FIRESTORE_DOC_ID     = 'dados';
     }
     var c = document.getElementById('ft-pending-count');
     if (c) c.textContent = pendencias.length;
+  }
+
+  /* ── Escalas customizadas (localStorage) ──────────────── */
+  var LS_ESCALAS_CUSTOM = 'ft_escalas_custom';
+
+  function loadEscalasCustom() {
+    try { return JSON.parse(localStorage.getItem(LS_ESCALAS_CUSTOM) || '{}'); } catch(e) { return {}; }
+  }
+  function saveEscalasCustom(obj) {
+    try { localStorage.setItem(LS_ESCALAS_CUSTOM, JSON.stringify(obj)); } catch(e) {}
+  }
+
+  // Converte string "HH:MM" em minutos
+  function horaParaMin(str) {
+    var m = String(str || '').match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return -1;
+    return parseInt(m[1],10)*60 + parseInt(m[2],10);
+  }
+
+  // Mescla ESCALAS_POSTOS hardcoded com as customizadas do localStorage
+  // As custom sobrepõem as hardcoded para o mesmo posto
+  function getEscalaEfetiva(postoNome) {
+    var custom = loadEscalasCustom();
+    var normP = norm(postoNome);
+    // Verifica se tem entrada customizada
+    for (var k in custom) {
+      if (norm(k) === normP) return { semana: custom[k] };
+    }
+    // Fallback para hardcoded
+    return getEscalaPosto(postoNome);
+  }
+
+  // Preenche o select de postos no editor de escalas
+  function renderEscalaSelectPostos() {
+    var sel = document.getElementById('ft-escala-select-posto');
+    if (!sel) return;
+    var cfg = loadConfig();
+    // União dos postos monitorados + postos cadastrados no sistema
+    var todosPostos = [];
+    cfg.postos.forEach(function(p){ if (todosPostos.indexOf(p)===-1) todosPostos.push(p); });
+    // Inclui postos hardcoded
+    for (var k in ESCALAS_POSTOS) { if (todosPostos.indexOf(k)===-1) todosPostos.push(k); }
+    // Inclui postos do sistema (ft_postos)
+    try {
+      var pSistema = JSON.parse(localStorage.getItem('ft_postos')||'[]');
+      pSistema.forEach(function(p){ if (todosPostos.indexOf(p.nome)===-1) todosPostos.push(p.nome); });
+    } catch(e){}
+
+    sel.innerHTML = '<option value="">— Selecione um posto —</option>';
+    todosPostos.sort(function(a,b){ return a.localeCompare(b,'pt-BR',{sensitivity:'base'}); });
+    todosPostos.forEach(function(p) {
+      var o = document.createElement('option');
+      o.value = o.textContent = p;
+      sel.appendChild(o);
+    });
+  }
+
+  var _escalaPosToEdit = ''; // posto sendo editado no editor
+
+  // Renderiza a lista de turnos do posto no editor
+  function renderEscalaDiasList(postoNome) {
+    var editor  = document.getElementById('ft-escala-editor');
+    var nomeEl  = document.getElementById('ft-escala-posto-nome');
+    var diasEl  = document.getElementById('ft-escala-dias-list');
+    if (!editor || !nomeEl || !diasEl) return;
+
+    _escalaPosToEdit = postoNome;
+    nomeEl.textContent = '📍 ' + postoNome;
+    editor.style.display = 'block';
+
+    // Carrega escala efetiva
+    var esc = getEscalaEfetiva(postoNome);
+    var semana = (esc && esc.semana) ? esc.semana : [[],[],[],[],[],[],[]];
+    // Garante 7 dias
+    while (semana.length < 7) semana.push([]);
+
+    var diasNomes = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+    diasEl.innerHTML = '';
+
+    semana.forEach(function(turnos, diaIdx) {
+      var rowDia = document.createElement('div');
+      rowDia.style.cssText = 'background:#10151e;border:1px solid #2a3347;border-radius:10px;padding:10px 12px;';
+
+      var header = document.createElement('div');
+      header.style.cssText = 'font-family:\'Exo 2\',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#8b97b0;margin-bottom:6px;';
+      header.textContent = diasNomes[diaIdx];
+      rowDia.appendChild(header);
+
+      if (!turnos || !turnos.length) {
+        var vazio = document.createElement('div');
+        vazio.style.cssText = 'font-size:.75rem;color:rgba(139,151,176,.5);font-style:italic;';
+        vazio.textContent = 'Sem turno configurado';
+        rowDia.appendChild(vazio);
+      } else {
+        turnos.forEach(function(t, tIdx) {
+          var chip = document.createElement('div');
+          chip.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:4px;';
+
+          var periodoIcon = t.per === 'dia' ? '☀️' : '🌙';
+          var entradaStr  = fmtMin(t.e);
+          var saidaStr    = fmtMin(t.s);
+          var nextLabel   = t.nd ? ' (+1)' : '';
+
+          var label = document.createElement('span');
+          label.style.cssText = 'flex:1;font-size:.8rem;color:#e8edf5;background:rgba(69,170,242,.1);border:1px solid rgba(69,170,242,.25);border-radius:6px;padding:4px 8px;';
+          label.textContent = periodoIcon + ' ' + entradaStr + ' → ' + saidaStr + nextLabel;
+
+          var btnDel = document.createElement('button');
+          btnDel.style.cssText = 'border:none;background:rgba(252,92,101,.15);color:#fc5c65;border-radius:6px;padding:4px 8px;font-size:.78rem;font-weight:700;cursor:pointer;flex-shrink:0;';
+          btnDel.textContent = '✕';
+          btnDel.dataset.dia = diaIdx;
+          btnDel.dataset.idx = tIdx;
+          btnDel.addEventListener('click', function() {
+            deletarTurnoEscala(postoNome, parseInt(this.dataset.dia), parseInt(this.dataset.idx));
+          });
+
+          chip.appendChild(label);
+          chip.appendChild(btnDel);
+          rowDia.appendChild(chip);
+        });
+      }
+      diasEl.appendChild(rowDia);
+    });
+  }
+
+  // Salva a escala customizada de um posto no localStorage
+  function getEscalaSemanaEditavel(postoNome) {
+    var esc = getEscalaEfetiva(postoNome);
+    var semana = (esc && esc.semana) ? esc.semana.map(function(d){ return (d||[]).slice(); }) : [[],[],[],[],[],[],[]];
+    while (semana.length < 7) semana.push([]);
+    return semana;
+  }
+
+  function salvarEscalaCustom(postoNome, semana) {
+    var custom = loadEscalasCustom();
+    custom[postoNome] = semana;
+    saveEscalasCustom(custom);
+    // Atualiza ESCALAS_POSTOS em memória
+    ESCALAS_POSTOS[postoNome] = { semana: semana };
+  }
+
+  function adicionarTurnoEscala(postoNome) {
+    var diaEl     = document.getElementById('ft-escala-novo-dia');
+    var entradaEl = document.getElementById('ft-escala-novo-entrada');
+    var saidaEl   = document.getElementById('ft-escala-novo-saida');
+    var periodoEl = document.getElementById('ft-escala-novo-periodo');
+    if (!diaEl || !entradaEl || !saidaEl || !periodoEl) return;
+
+    var diaIdx  = parseInt(diaEl.value, 10);
+    var eMin    = horaParaMin(entradaEl.value.trim());
+    var sMin    = horaParaMin(saidaEl.value.trim());
+    var periodo = periodoEl.value;
+
+    if (eMin < 0) {
+      if (typeof window.showToast === 'function') window.showToast('⚠️ Hora de entrada inválida. Use HH:MM.', 'error');
+      entradaEl.style.borderColor = '#fc5c65'; setTimeout(function(){ entradaEl.style.borderColor=''; }, 2000);
+      return;
+    }
+    if (sMin < 0) {
+      if (typeof window.showToast === 'function') window.showToast('⚠️ Hora de saída inválida. Use HH:MM.', 'error');
+      saidaEl.style.borderColor = '#fc5c65'; setTimeout(function(){ saidaEl.style.borderColor=''; }, 2000);
+      return;
+    }
+
+    var nd = sMin <= eMin; // saída <= entrada → passa da meia-noite
+    var semana = getEscalaSemanaEditavel(postoNome);
+    semana[diaIdx].push({ e: eMin, s: sMin, nd: nd, per: periodo });
+    salvarEscalaCustom(postoNome, semana);
+
+    entradaEl.value = '';
+    saidaEl.value   = '';
+    renderEscalaDiasList(postoNome);
+    updateHeaderBadge();
+    if (typeof window.showToast === 'function') window.showToast('✅ Turno adicionado!', 'success');
+  }
+
+  function deletarTurnoEscala(postoNome, diaIdx, turnoIdx) {
+    var semana = getEscalaSemanaEditavel(postoNome);
+    if (semana[diaIdx]) semana[diaIdx].splice(turnoIdx, 1);
+    salvarEscalaCustom(postoNome, semana);
+    renderEscalaDiasList(postoNome);
+    updateHeaderBadge();
+    if (typeof window.showToast === 'function') window.showToast('🗑️ Turno removido.', 'error');
+  }
+
+  function initEscalaEditor() {
+    renderEscalaSelectPostos();
+
+    var btnVer = document.getElementById('ft-escala-btn-ver');
+    if (btnVer) {
+      btnVer.addEventListener('click', function() {
+        var posto = (document.getElementById('ft-escala-select-posto') || {}).value || '';
+        if (!posto) {
+          if (typeof window.showToast === 'function') window.showToast('⚠️ Selecione um posto.', 'error');
+          return;
+        }
+        renderEscalaDiasList(posto);
+      });
+    }
+
+    var btnAdd = document.getElementById('ft-escala-btn-add-turno');
+    if (btnAdd) {
+      btnAdd.addEventListener('click', function() {
+        if (!_escalaPosToEdit) return;
+        adicionarTurnoEscala(_escalaPosToEdit);
+      });
+    }
+
+    var btnLimpar = document.getElementById('ft-escala-btn-limpar');
+    if (btnLimpar) {
+      btnLimpar.addEventListener('click', function() {
+        if (!_escalaPosToEdit) return;
+        if (!confirm('Remover toda a escala de "' + _escalaPosToEdit + '"?')) return;
+        var custom = loadEscalasCustom();
+        delete custom[_escalaPosToEdit];
+        // Remove do ESCALAS_POSTOS em memória também
+        delete ESCALAS_POSTOS[_escalaPosToEdit];
+        saveEscalasCustom(custom);
+        renderEscalaDiasList(_escalaPosToEdit);
+        updateHeaderBadge();
+        if (typeof window.showToast === 'function') window.showToast('🗑️ Escala removida.', 'success');
+      });
+    }
+  }
+
+  // Carrega escalas customizadas do localStorage e injeta no ESCALAS_POSTOS ao iniciar
+  function carregarEscalasCustomNaMemoria() {
+    var custom = loadEscalasCustom();
+    for (var posto in custom) {
+      ESCALAS_POSTOS[posto] = { semana: custom[posto] };
+    }
   }
 
   /* ── Renderiza lista de postos na config ───────────────── */
@@ -6569,6 +6931,7 @@ var FIRESTORE_DOC_ID     = 'dados';
 
   /* ── Inicialização ─────────────────────────────────────── */
   function init() {
+    carregarEscalasCustomNaMemoria(); // injeta escalas salvas antes de tudo
     saveConfig(loadConfig()); // garante config padrão
 
     var bind = function (id, fn) {
@@ -6589,6 +6952,7 @@ var FIRESTORE_DOC_ID     = 'dados';
     bind('ft-config-close', function () {
       document.getElementById('ft-config-overlay').style.display = 'none';
       updateHeaderBadge();
+      renderBicoPostosMonitorados(); // sincroniza card da aba Bico
     });
 
     bind('ft-config-test', function () {
@@ -6639,12 +7003,123 @@ var FIRESTORE_DOC_ID     = 'dados';
     };
 
     setTimeout(scheduledCheck, 1500);
+
+    // Editor de escalas
+    initEscalaEditor();
+
+    // Card de postos monitorados na aba Bico Fixo
+    initBicoPostosMonitoradosCard();
   }
 
   function openConfigModal() {
     renderConfigPostos();
     renderConfigPeriodos();
+    renderEscalaSelectPostos(); // atualiza lista de postos no editor
     document.getElementById('ft-config-overlay').style.display = 'flex';
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     CARD "POSTOS MONITORADOS" NA ABA BICO FIXO
+     Exibe os postos da config + botão para adicionar novo
+     ══════════════════════════════════════════════════════════ */
+
+  function renderBicoPostosMonitorados() {
+    var list = document.getElementById('bico-postos-monitorados-list');
+    if (!list) return;
+    var cfg = loadConfig();
+    list.innerHTML = '';
+
+    if (!cfg.postos.length) {
+      list.innerHTML = '<div style="color:#8b97b0;font-size:.8rem;text-align:center;padding:6px 0;">Nenhum posto monitorado. Adicione um acima.</div>';
+      return;
+    }
+
+    cfg.postos.forEach(function(posto, idx) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;background:#10151e;border:1px solid #2a3347;border-radius:10px;padding:10px 14px;';
+
+      var dot = document.createElement('span');
+      dot.style.cssText = 'width:8px;height:8px;border-radius:50%;background:#45aaf2;flex-shrink:0;';
+
+      var lbl = document.createElement('span');
+      lbl.style.cssText = 'flex:1;color:#e8edf5;font-size:.9rem;';
+      lbl.textContent = posto;
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.style.cssText = 'border:none;background:rgba(252,92,101,.15);color:#fc5c65;border-radius:7px;padding:5px 10px;font-size:.82rem;font-weight:700;cursor:pointer;transition:background .2s;';
+      btn.textContent = '✕';
+      btn.title = 'Remover posto monitorado';
+      btn.onclick = function() {
+        cfg.postos.splice(idx, 1);
+        saveConfig(cfg);
+        renderBicoPostosMonitorados();
+        renderConfigPostos(); // sincroniza com modal de config
+        updateHeaderBadge();
+        if (typeof window.showToast === 'function') window.showToast('🗑️ Posto removido dos monitorados.', 'error');
+      };
+
+      row.appendChild(dot);
+      row.appendChild(lbl);
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+  }
+
+  function initBicoPostosMonitoradosCard() {
+    var btnAdd     = document.getElementById('btn-bico-add-posto-monitorado');
+    var addWrap    = document.getElementById('bico-add-posto-mon-wrap');
+    var addInput   = document.getElementById('bico-add-posto-mon-input');
+    var btnSalvar  = document.getElementById('btn-bico-add-posto-mon-salvar');
+    var btnCancelar= document.getElementById('btn-bico-add-posto-mon-cancelar');
+
+    if (!btnAdd || !addWrap) return;
+
+    btnAdd.addEventListener('click', function() {
+      addWrap.style.display = 'flex';
+      btnAdd.style.display  = 'none';
+      if (addInput) { addInput.value = ''; addInput.focus(); }
+    });
+
+    function cancelarAdd() {
+      addWrap.style.display = 'none';
+      btnAdd.style.display  = '';
+    }
+
+    function salvarPostoMonitorado() {
+      var val = (addInput ? addInput.value : '').trim();
+      if (!val) {
+        if (typeof window.showToast === 'function') window.showToast('⚠️ Digite o nome do posto.', 'error');
+        return;
+      }
+      var cfg = loadConfig();
+      var normVal = val.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+      var jaExiste = cfg.postos.some(function(p) {
+        return p.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim() === normVal;
+      });
+      if (jaExiste) {
+        if (typeof window.showToast === 'function') window.showToast('⚠️ Posto já está na lista.', 'error');
+        return;
+      }
+      cfg.postos.push(val);
+      saveConfig(cfg);
+      renderBicoPostosMonitorados();
+      renderConfigPostos();
+      renderEscalaSelectPostos();
+      updateHeaderBadge();
+      cancelarAdd();
+      if (typeof window.showToast === 'function') window.showToast('✅ Posto "' + val + '" adicionado aos monitorados!', 'success');
+    }
+
+    if (btnSalvar)   btnSalvar.addEventListener('click', salvarPostoMonitorado);
+    if (btnCancelar) btnCancelar.addEventListener('click', cancelarAdd);
+    if (addInput)    addInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); salvarPostoMonitorado(); }
+      if (e.key === 'Escape') cancelarAdd();
+    });
+
+    // Renderiza lista inicial
+    renderBicoPostosMonitorados();
   }
 
   window.FT_AlertCheck = {
