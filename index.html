@@ -154,7 +154,7 @@
   header {
     background: linear-gradient(135deg, #1a2133 0%, #0f1624 100%);
     border-bottom: 2px solid var(--accent1);
-    padding: 22px 20px 18px;
+    padding: 16px 20px 14px;
     text-align: center;
     position: sticky;
     top: 0;
@@ -171,6 +171,7 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
+    margin: 0;
   }
   header h1 .icon { font-size: 1.5rem; }
   .badge-auto {
@@ -1590,7 +1591,12 @@
     }
 
     /* Header em linha: logo esq | título centro | badges dir */
-    header { padding: 0 40px; height: 60px; }
+    header {
+      padding: 0 40px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+    }
     .header-inner {
       flex-direction: row;
       align-items: center;
@@ -1598,22 +1604,30 @@
       height: 100%;
       gap: 16px;
     }
-    .header-logo { margin-bottom: 0; flex-shrink: 0; }
+    .header-logo {
+      margin-bottom: 0;
+      flex-shrink: 0;
+      flex: 0 0 auto;
+    }
     .header-center {
       flex: 1;
       text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .header-center h1,
-    header h1 { font-size: 1.25rem; margin: 0; }
+    .header-center h1 { font-size: 1.2rem; margin: 0; white-space: nowrap; }
     .header-badges {
       flex-shrink: 0;
+      flex: 0 0 auto;
       justify-content: flex-end;
+      align-items: center;
       gap: 6px;
       flex-wrap: nowrap;
     }
-    #sync-status { margin-left: 0; margin-top: 0; }
+    #sync-status   { margin-left: 0; margin-top: 0; }
     #pending-badge { margin-left: 0; margin-top: 0; }
-    .badge-auto { margin-top: 0; }
+    .badge-auto    { margin-top: 0; }
 
     /* Layout centralizado — mais largo */
     .tabs-wrapper {
@@ -1749,13 +1763,12 @@
 
   /* ── Desktop largo (≥ 1280px) ── */
   @media (min-width: 1280px) {
-    header { padding: 0 56px; }
+    header { padding: 0 56px; height: 64px; }
     .tabs-wrapper { max-width: 1200px; padding: 0 40px; }
     .tab-btn { font-size: .82rem; padding: 13px 8px; }
     .kpi-value { font-size: 1.55rem; }
     .form-card { padding: 36px 32px; }
-    header h1,
-    .header-center h1 { font-size: 1.38rem; }
+    .header-center h1 { font-size: 1.35rem; }
   }
 
   /* ── Toque: aumentar área de tap em botões pequenos ── */
@@ -1832,7 +1845,7 @@
 
     <!-- Título central -->
     <div class="header-center">
-      <h1 style="font-size:1.15rem;gap:8px;">
+      <h1>
         <span class="icon">&#x1F4BC;</span> Nova Folga Trabalhada
         <span style="color:var(--accent1)">FT</span>
       </h1>
