@@ -1589,14 +1589,37 @@
       background-attachment: fixed;
     }
 
-    header { padding: 22px 40px 18px; }
-    header h1 { font-size: 1.7rem; }
+    /* Header em linha: logo esq | título centro | badges dir */
+    header { padding: 0 40px; height: 60px; }
+    .header-inner {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      height: 100%;
+      gap: 16px;
+    }
+    .header-logo { margin-bottom: 0; flex-shrink: 0; }
+    .header-center {
+      flex: 1;
+      text-align: center;
+    }
+    .header-center h1,
+    header h1 { font-size: 1.25rem; margin: 0; }
+    .header-badges {
+      flex-shrink: 0;
+      justify-content: flex-end;
+      gap: 6px;
+      flex-wrap: nowrap;
+    }
+    #sync-status { margin-left: 0; margin-top: 0; }
+    #pending-badge { margin-left: 0; margin-top: 0; }
+    .badge-auto { margin-top: 0; }
 
-    /* Layout centralizado com largura máxima */
+    /* Layout centralizado — mais largo */
     .tabs-wrapper {
-      max-width: 860px;
+      max-width: 1080px;
       padding: 0 32px;
-      margin: 24px auto 0;
+      margin: 20px auto 0;
     }
 
     /* Tab nav — 6 colunas numa linha */
@@ -1726,10 +1749,13 @@
 
   /* ── Desktop largo (≥ 1280px) ── */
   @media (min-width: 1280px) {
-    .tabs-wrapper { max-width: 960px; }
+    header { padding: 0 56px; }
+    .tabs-wrapper { max-width: 1200px; padding: 0 40px; }
     .tab-btn { font-size: .82rem; padding: 13px 8px; }
     .kpi-value { font-size: 1.55rem; }
     .form-card { padding: 36px 32px; }
+    header h1,
+    .header-center h1 { font-size: 1.38rem; }
   }
 
   /* ── Toque: aumentar área de tap em botões pequenos ── */
@@ -1748,53 +1774,81 @@
     .btn-edit-save,
     .btn-edit-cancel { min-height: 48px; }
   }
+  /* ── Header responsivo ── */
+  /* Mobile: empilhado e centralizado (padrão) */
+  .header-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+  .header-logo { margin-bottom: 2px; }
+  .header-center { text-align: center; }
+  .header-badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <!-- Logo PJ Tecnologia -->
-  <div class="pj-logo-inline" style="margin-bottom:10px;">
-    <div class="pj-hex-wrap">
-      <svg viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="hdrHexG" x1="0" y1="0" x2="100" y2="110" gradientUnits="userSpaceOnUse">
-            <stop offset="0%"   stop-color="#0d3878"/>
-            <stop offset="100%" stop-color="#051225"/>
-          </linearGradient>
-          <linearGradient id="hdrHexS" x1="0" y1="0" x2="100" y2="110" gradientUnits="userSpaceOnUse">
-            <stop offset="0%"   stop-color="#00eaff"/>
-            <stop offset="100%" stop-color="#00a0cc"/>
-          </linearGradient>
-        </defs>
-        <polygon points="50,4 96,28 96,82 50,106 4,82 4,28" fill="url(#hdrHexG)" stroke="url(#hdrHexS)" stroke-width="3"/>
-        <circle cx="50" cy="4"   r="3" fill="#00eaff" opacity=".8"/>
-        <circle cx="96" cy="28"  r="3" fill="#00eaff" opacity=".8"/>
-        <circle cx="96" cy="82"  r="3" fill="#00eaff" opacity=".8"/>
-        <circle cx="50" cy="106" r="3" fill="#00eaff" opacity=".8"/>
-        <circle cx="4"  cy="82"  r="3" fill="#00eaff" opacity=".8"/>
-        <circle cx="4"  cy="28"  r="3" fill="#00eaff" opacity=".8"/>
-      </svg>
-      <div class="pj-monogram">P<span>J</span></div>
-    </div>
-    <div class="pj-text-wrap">
-      <div class="pj-brand-name"><em>PJ</em> Tecnologia</div>
-      <div class="pj-brand-sub">e Sistemas</div>
-    </div>
-  </div>
+  <!-- Layout mobile: empilhado | Layout laptop: logo esquerda + título centro + badges direita -->
+  <div class="header-inner">
 
-  <h1 style="font-size:1.15rem;gap:8px;">
-    <span class="icon">&#x1F4BC;</span> Nova Folga Trabalhada
-    <span style="color:var(--accent1)">FT</span>
-  </h1>
-  <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0;">
-    <div class="badge-auto">&#x1F4BE; Offline-first</div>
-    <span id="sync-status" class="online" title="Status da conexão">
-      <span class="dot"></span><span id="sync-label">Online</span>
-    </span>
-    <span id="pending-badge" title="Operações aguardando sincronização">
-      ⏳ <span id="pending-count">0</span> pendente(s)
-    </span>
+    <!-- Logo PJ Tecnologia -->
+    <div class="pj-logo-inline header-logo">
+      <div class="pj-hex-wrap">
+        <svg viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="hdrHexG" x1="0" y1="0" x2="100" y2="110" gradientUnits="userSpaceOnUse">
+              <stop offset="0%"   stop-color="#0d3878"/>
+              <stop offset="100%" stop-color="#051225"/>
+            </linearGradient>
+            <linearGradient id="hdrHexS" x1="0" y1="0" x2="100" y2="110" gradientUnits="userSpaceOnUse">
+              <stop offset="0%"   stop-color="#00eaff"/>
+              <stop offset="100%" stop-color="#00a0cc"/>
+            </linearGradient>
+          </defs>
+          <polygon points="50,4 96,28 96,82 50,106 4,82 4,28" fill="url(#hdrHexG)" stroke="url(#hdrHexS)" stroke-width="3"/>
+          <circle cx="50" cy="4"   r="3" fill="#00eaff" opacity=".8"/>
+          <circle cx="96" cy="28"  r="3" fill="#00eaff" opacity=".8"/>
+          <circle cx="96" cy="82"  r="3" fill="#00eaff" opacity=".8"/>
+          <circle cx="50" cy="106" r="3" fill="#00eaff" opacity=".8"/>
+          <circle cx="4"  cy="82"  r="3" fill="#00eaff" opacity=".8"/>
+          <circle cx="4"  cy="28"  r="3" fill="#00eaff" opacity=".8"/>
+        </svg>
+        <div class="pj-monogram">P<span>J</span></div>
+      </div>
+      <div class="pj-text-wrap">
+        <div class="pj-brand-name"><em>PJ</em> Tecnologia</div>
+        <div class="pj-brand-sub">e Sistemas</div>
+      </div>
+    </div>
+
+    <!-- Título central -->
+    <div class="header-center">
+      <h1 style="font-size:1.15rem;gap:8px;">
+        <span class="icon">&#x1F4BC;</span> Nova Folga Trabalhada
+        <span style="color:var(--accent1)">FT</span>
+      </h1>
+    </div>
+
+    <!-- Badges / indicadores (direita no laptop) -->
+    <div class="header-badges">
+      <div class="badge-auto">&#x1F4BE; Offline-first</div>
+      <span id="sync-status" class="online" title="Status da conexão">
+        <span class="dot"></span><span id="sync-label">Online</span>
+      </span>
+      <span id="pending-badge" title="Operações aguardando sincronização">
+        ⏳ <span id="pending-count">0</span> pendente(s)
+      </span>
+    </div>
+
   </div>
 </header>
 
