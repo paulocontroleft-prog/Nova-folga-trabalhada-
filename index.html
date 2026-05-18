@@ -254,6 +254,8 @@
     max-width: 480px;
     margin: 20px auto 0;
     padding: 0 16px;
+    width: 100%;
+    box-sizing: border-box;
   }
   .tab-nav {
     display: flex;
@@ -1364,7 +1366,7 @@
   .horario-saved-chip .chip-del:hover { opacity: 1; }
 
   /* ════════════════════════════════════════════════
-     RESPONSIVO MOBILE — base mobile-first
+     RESPONSIVO — mobile-first + laptop
      ════════════════════════════════════════════════ */
 
   /* ── Telas muito pequenas (< 360px) ── */
@@ -1401,7 +1403,7 @@
     #sync-status { margin-left: 5px; }
     .badge-auto, #sync-status, #pending-badge { font-size: .65rem; }
 
-    /* Tab nav — quebra em 2 linhas de 3 */
+    /* Tab nav — grid 3 colunas */
     .tab-nav {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -1414,7 +1416,7 @@
       letter-spacing: 0;
     }
 
-    /* Wrapper sem padding lateral excessivo */
+    /* Wrapper */
     .tabs-wrapper { padding: 0 10px; margin-top: 14px; }
 
     /* Form card */
@@ -1434,7 +1436,7 @@
     }
     select { padding-right: 36px; }
 
-    /* Botões de ação grandes para toque */
+    /* Botões grandes para toque */
     .btn { font-size: .88rem; padding: 15px 10px; min-height: 50px; }
     .btn-row { gap: 10px; }
 
@@ -1448,7 +1450,7 @@
     .list-item { padding: 10px 12px; font-size: .85rem; }
     .btn-remove, .btn-edit-item { padding: 5px 8px; font-size: .78rem; }
 
-    /* Relatório — botões empilhados em mobile */
+    /* Relatório — botões empilhados */
     .relatorio-row { flex-direction: column; gap: 8px; }
     .btn-relatorio { flex-direction: row; justify-content: center; gap: 8px; padding: 14px 16px; }
     .btn-relatorio .rel-icon { font-size: 1.2rem; }
@@ -1542,11 +1544,192 @@
     header h1 { font-size: 1.3rem; }
   }
 
-  /* ── Desktop / tablet largo (≥ 500px) ── */
-  @media (min-width: 500px) {
-    header h1 { font-size: 1.6rem; }
-    .tabs-wrapper { padding: 0; max-width: 520px; }
-    .dash-filter-row { flex-direction: row; flex-wrap: wrap; }
+  /* ── Tablet / laptop pequeno (768px–1023px) ── */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    body { padding-bottom: 60px; }
+    header { padding: 20px 32px 16px; }
+    header h1 { font-size: 1.55rem; }
+
+    .tabs-wrapper {
+      max-width: 680px;
+      padding: 0 24px;
+      margin-top: 22px;
+    }
+    .tab-nav {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+    .tab-btn { font-size: .72rem; padding: 11px 4px; }
+
+    .form-card { padding: 28px 24px; }
+    .field { margin-bottom: 22px; }
+
+    .kpi-row { gap: 12px; }
+    .kpi-card { padding: 16px 12px; border-radius: 12px; }
+    .kpi-value { font-size: 1.3rem; }
+    .kpi-label { font-size: .7rem; }
+
+    .dash-filter-row { flex-direction: row; flex-wrap: wrap; gap: 14px; }
+    .relatorio-row { gap: 12px; }
+    .btn-relatorio { padding: 18px 12px; }
+
+    .hist-card { padding: 16px 18px; }
+    .hist-colab { font-size: .92rem; }
+    .hist-valor { font-size: 1rem; }
+
+    .modal-edit-box { max-width: 520px; border-radius: 20px; }
+    .modal-box { max-width: 420px; }
+  }
+
+  /* ── Laptop / desktop (≥ 1024px) ── */
+  @media (min-width: 1024px) {
+    body {
+      padding-bottom: 70px;
+      background-attachment: fixed;
+    }
+
+    header { padding: 22px 40px 18px; }
+    header h1 { font-size: 1.7rem; }
+
+    /* Layout centralizado com largura máxima */
+    .tabs-wrapper {
+      max-width: 860px;
+      padding: 0 32px;
+      margin: 24px auto 0;
+    }
+
+    /* Tab nav — 6 colunas numa linha */
+    .tab-nav {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      font-size: .78rem;
+      padding: 12px 6px;
+      border-radius: 10px;
+      letter-spacing: .3px;
+    }
+
+    /* Form card mais espaçoso */
+    .form-card { padding: 32px 28px; }
+    .field { margin-bottom: 24px; }
+    .field-label { font-size: .78rem; }
+
+    /* Inputs laptop */
+    select,
+    input[type="number"],
+    input[type="datetime-local"],
+    input[type="text"] {
+      font-size: 1rem;
+      padding: 14px 18px;
+    }
+    select { padding-right: 42px; }
+
+    /* Botões */
+    .btn { font-size: 1rem; padding: 16px 14px; }
+    .btn-row { gap: 14px; }
+
+    /* Dashboard — KPIs */
+    .kpi-row { gap: 14px; margin-bottom: 16px; }
+    .kpi-card { padding: 18px 14px; border-radius: 14px; }
+    .kpi-value { font-size: 1.45rem; }
+    .kpi-label { font-size: .72rem; letter-spacing: .5px; }
+
+    /* Dashboard filtros lado a lado */
+    .dash-filter-card { padding: 20px 22px; }
+    .dash-filter-row { flex-direction: row; flex-wrap: wrap; gap: 16px; }
+    .dash-filter-group { min-width: 180px; }
+
+    /* Dash select */
+    .dash-select { font-size: .95rem; padding: 11px 16px; }
+
+    /* Dash pills */
+    .dash-pill { font-size: .78rem; padding: 7px 16px; }
+    .dash-pill-row { gap: 8px; }
+
+    /* Exportação */
+    .dash-export-card { padding: 18px 22px; }
+    .dash-export-row { gap: 12px; }
+    .btn-dash-export { padding: 16px 12px; font-size: .82rem; }
+    .btn-dash-export .exp-icon { font-size: 1.5rem; }
+
+    /* Ranking */
+    .dash-card { padding: 20px 18px 16px; }
+    .rank-row { padding: 12px 14px; gap: 12px; }
+    .rank-name { font-size: .92rem; }
+    .rank-badge { font-size: .72rem; padding: 3px 10px; }
+    .rank-pos { font-size: .85rem; min-width: 26px; }
+
+    /* Cadastros */
+    .cadastro-section { padding: 22px 22px; }
+    .cadastro-section h2 { font-size: .95rem; }
+    .relatorio-section { padding: 22px 22px; }
+    .add-row { gap: 10px; }
+    .btn-add { padding: 0 22px; font-size: .92rem; }
+    .list-item { padding: 12px 16px; font-size: .92rem; }
+
+    /* Relatório */
+    .relatorio-row { gap: 14px; }
+    .btn-relatorio { padding: 20px 14px; font-size: .85rem; }
+    .btn-relatorio .rel-icon { font-size: 1.6rem; }
+    .btn-relatorio .rel-sub { display: block; }
+    .filtro-row { gap: 8px; }
+    .btn-filtro { font-size: .78rem; padding: 9px 16px; }
+
+    /* Histórico */
+    .hist-search-input { font-size: .95rem; padding: 13px 16px 13px 48px; }
+    .hist-card { padding: 16px 20px; }
+    .hist-colab { font-size: .95rem; }
+    .hist-valor { font-size: 1rem; }
+    .hist-tag { font-size: .74rem; padding: 4px 12px; }
+    .hist-data { font-size: .78rem; }
+    .btn-hist-edit, .btn-hist-del, .btn-hist-recibo { font-size: .75rem; padding: 9px 10px; }
+
+    /* Notices */
+    .notice { font-size: .88rem; padding: 16px 20px; }
+
+    /* Section sep */
+    .section-sep { font-size: .72rem; margin: 10px 0 20px; }
+
+    /* Modals */
+    .modal-edit-box {
+      max-width: 540px;
+      border-radius: 20px 20px 0 0;
+      padding: 28px 28px 40px;
+    }
+    .modal-edit-title { font-size: 1.05rem; }
+    .btn-edit-cancel, .btn-edit-save { padding: 15px; font-size: .95rem; }
+    .modal-box { max-width: 440px; padding: 32px 28px 26px; border-radius: 20px; }
+    .modal-title { font-size: 1.05rem; }
+    .modal-body { font-size: .9rem; }
+    .btn-modal-ok { padding: 14px; font-size: .92rem; }
+
+    /* Horário custom */
+    .btn-horario-toggle { font-size: .75rem; padding: 8px 14px; }
+    .horario-saved-chip { font-size: .74rem; padding: 5px 12px 5px 14px; }
+    .btn-horario-add { font-size: .85rem; padding: 12px 18px; }
+
+    /* Toast */
+    .toast { bottom: 80px; font-size: .92rem; padding: 14px 28px; }
+
+    /* Footer PJ */
+    #pj-footer { padding: 10px 24px 8px; gap: 10px; }
+    .pj-footer-name { font-size: .56rem; }
+    .pj-footer-tagline { font-size: .6rem; letter-spacing: 2px; }
+
+    /* Geral lista */
+    #geralList { max-height: 520px; }
+  }
+
+  /* ── Desktop largo (≥ 1280px) ── */
+  @media (min-width: 1280px) {
+    .tabs-wrapper { max-width: 960px; }
+    .tab-btn { font-size: .82rem; padding: 13px 8px; }
+    .kpi-value { font-size: 1.55rem; }
+    .form-card { padding: 36px 32px; }
   }
 
   /* ── Toque: aumentar área de tap em botões pequenos ── */
